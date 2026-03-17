@@ -13,6 +13,7 @@ constexpr uint8_t EMPTY = 0;
 constexpr int GetType = 7; //number to do bitwise and to get the piece type
 constexpr int GetColor = 1; //number to do bitwise and after shifting bits 3 to the right
 constexpr int file = 8;
+constexpr int Rank = 8;
 
 
 //--------------------------------------------- PIECE RELATED FUNCTIONS AND INFORMATION ----------------------------------------------
@@ -56,7 +57,7 @@ uint8_t createPiece(uint8_t piece,const bool isBlack, const bool hasMoved) {
     return hasMoved ? piece | (1 << 4): piece;
 }
 
-//---------------------------------------------------------- PIECE MOVEMENT -----------------------------------------------
+//--------------------------------------------- PIECE MOVEMENT -----------------------------------------------
 inline int getFileFromPosition(const int position){return position % file;}
 
 bool checkWrap(const int currentPosition, const int nextPosition, const int maxDiff) {
@@ -86,54 +87,54 @@ bool addPieceInVector(const int currentSquare, const int next_possible_square, v
 //get all valid moves for knight
 //the knight has 8 possible plays
 //1 file = 8
-//possible_moves = [+2 file, -2 file] [+1 rank, -1 rank]  or [1 file, -1 file] [+3 rank, -3 rank]
+//possible_moves = [+2 rank, -2 rank] [+1 file, -1 file]  or [1 rank, -1 rank] [+3 file, -3 file]
 vector<uint8_t> getAllPossibleKnightMoves(const int currentSquare) {
     vector<uint8_t> possible_squares;
-    //first two condition is for [+2 file, -2 file] [+1 rank, -1 rank]
-    int next_possible_square = (currentSquare + (2 * file)) + 1;
+    //first two condition is for [+2 rank, -2 rank] [+1 file, -1 file]
+    int next_possible_square = (currentSquare + (2 * Rank)) + 1;
 
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 1)) {
 
         addPieceInVector(currentSquare, next_possible_square,possible_squares);
     }
 
-    next_possible_square = (currentSquare + (2 * file)) - 1;
+    next_possible_square = (currentSquare + (2 * Rank)) - 1;
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 1)) {
         addPieceInVector(currentSquare, next_possible_square,possible_squares);
     }
 
-    //condition 2 [-2 file]
-    next_possible_square = (currentSquare + (-2 * file)) + 1;
+    //condition 2 [-2 Rank]
+    next_possible_square = (currentSquare + (-2 * Rank)) + 1;
 
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 1)) {
         addPieceInVector(currentSquare, next_possible_square,possible_squares);
     }
 
-    next_possible_square = (currentSquare + (-2 * file)) - 1;
+    next_possible_square = (currentSquare + (-2 * Rank)) - 1;
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 1)) {
         addPieceInVector(currentSquare, next_possible_square,possible_squares);
     }
 
-    //condition for [+1 file, -1 file] [+2 rank, -2 rank]
-    next_possible_square = (currentSquare + (1 * file)) + 2;
+    //condition for [+1 Rank, -1 Rank] [+2 file, -2 file]
+    next_possible_square = (currentSquare + (1 * Rank)) + 2;
 
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 2)) {
         addPieceInVector(currentSquare, next_possible_square,possible_squares);
     }
 
-    next_possible_square = (currentSquare + (1 * file)) - 2;
+    next_possible_square = (currentSquare + (1 * Rank)) - 2;
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 2)) {
         addPieceInVector(currentSquare, next_possible_square,possible_squares);
     }
 
     //condition for [-1]
-    next_possible_square = (currentSquare + (-1 * file)) + 2;
+    next_possible_square = (currentSquare + (-1 * Rank)) + 2;
 
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 2)) {
         addPieceInVector(currentSquare, next_possible_square,possible_squares);
     }
 
-    next_possible_square = (currentSquare + (-1 * file)) - 2 ;
+    next_possible_square = (currentSquare + (-1 * Rank)) - 2 ;
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 2)) {
         addPieceInVector(currentSquare, next_possible_square,possible_squares);
     }
@@ -155,8 +156,8 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare) {
 
         //check first quadrant
         if (!firstQuadrantComplete) {
-            int next_possible_square_first_quad = (currentSquare + (Nextfile * file)) + Nextrank;
-            if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(currentSquare, next_possible_square_first_quad, 1)) {
+            int next_possible_square_first_quad = (currentSquare + (Nextrank * Rank)) + Nextfile;
+            if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(currentSquare, next_possible_square_first_quad, Nextfile)) {
                 bool addResult = addPieceInVector(currentSquare, next_possible_square_first_quad,possible_squares);
                 if (!addResult)
                     firstQuadrantComplete = true;
@@ -167,8 +168,8 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare) {
 
         //check the second quadrant
         if (!SecondQuadrantComplete) {
-            int next_possible_square_Second_quad = (currentSquare + (Nextfile * file)) - Nextrank;
-            if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(currentSquare, next_possible_square_Second_quad, 1)) {
+            int next_possible_square_Second_quad = (currentSquare + (Nextrank * Rank)) - Nextfile;
+            if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(currentSquare, next_possible_square_Second_quad, Nextfile)) {
                 bool addResult = addPieceInVector(currentSquare, next_possible_square_Second_quad,possible_squares);
                 if (!addResult)
                     SecondQuadrantComplete = true;
@@ -179,8 +180,8 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare) {
 
         //check the third quadrant
         if (!ThirdQuadrantComplete) {
-            int next_possible_square_third_quad = (currentSquare + (-1 * Nextfile * file)) - Nextrank;
-            if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(currentSquare, next_possible_square_third_quad, 1)) {
+            int next_possible_square_third_quad = (currentSquare + (-1 * Nextrank * Rank)) - Nextfile;
+            if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(currentSquare, next_possible_square_third_quad, Nextfile)) {
                 bool addResult = addPieceInVector(currentSquare, next_possible_square_third_quad,possible_squares);
                 if (!addResult)
                     ThirdQuadrantComplete = true;
@@ -191,8 +192,8 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare) {
 
         //check the third quadrant
         if (!fourthQuadrantComplete) {
-            int next_possible_square_fourth_quad = (currentSquare + (-1 * Nextfile * file)) + Nextrank;
-            if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(currentSquare, next_possible_square_fourth_quad, 1)) {
+            int next_possible_square_fourth_quad = (currentSquare + (-1 * Nextrank * Rank)) + Nextfile;
+            if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(currentSquare, next_possible_square_fourth_quad, Nextfile)) {
                 bool addResult = addPieceInVector(currentSquare, next_possible_square_fourth_quad,possible_squares);
                 if (!addResult)
                     fourthQuadrantComplete = true;
@@ -212,8 +213,138 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare) {
 
 }
 
+vector<uint8_t> getAllPossibleRookMoves(const int currentSquare) {
+    vector<uint8_t> possible_squares;
+    bool rightDirectionComplete = false;
+    bool leftDirectionComplete = false;
+    bool upDirectionComplete = false;
+    bool downDirectionComplete = false;
 
-//-------------------------------------------------------- BOARD RELATED FUNCTIONS -----------------------------------------
+    int NextFile = 1;
+    int NextRank = 1;
+    while (true) {
+        if (!rightDirectionComplete) {
+            int next_square = currentSquare + (NextFile);
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile)) {
+                bool addResult = addPieceInVector(currentSquare, next_square,possible_squares);
+                if (!addResult)
+                    rightDirectionComplete = true;
+            }else {
+                rightDirectionComplete = true;
+            }
+        }
+
+        if (!leftDirectionComplete) {
+            int next_square = currentSquare + (-1 * NextFile);
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile)) {
+                bool addResult = addPieceInVector(currentSquare, next_square,possible_squares);
+                if (!addResult)
+                    leftDirectionComplete = true;
+            }else {
+                leftDirectionComplete = true;
+            }
+        }
+
+        if (!upDirectionComplete) {
+            int next_square = currentSquare + (NextRank * 8);
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 0)) {
+                bool addResult = addPieceInVector(currentSquare, next_square,possible_squares);
+                if (!addResult)
+                    upDirectionComplete = true;
+            }else {
+                upDirectionComplete = true;
+            }
+        }
+
+        if (!downDirectionComplete) {
+            int next_square = currentSquare + (-1 * NextRank * 8);
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 0)) {
+                bool addResult = addPieceInVector(currentSquare, next_square,possible_squares);
+                if (!addResult)
+                    downDirectionComplete = true;
+            }else {
+                downDirectionComplete = true;
+            }
+        }
+
+        if (rightDirectionComplete && leftDirectionComplete && upDirectionComplete && downDirectionComplete)
+            break;
+
+        NextFile++;
+        NextRank++;
+    }
+
+    return possible_squares;
+
+}
+
+vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare) {
+    vector<uint8_t> possible_squares;
+    const bool isMoved = hasMoved(board[currentSquare]);
+    if (!isBlack(board[currentSquare])) {
+        if (!isMoved) {
+            const int next_square = currentSquare + (2 * Rank);
+            addPieceInVector(currentSquare, next_square,possible_squares);
+        }
+
+        int next_square = currentSquare + (1 * Rank) + 1;
+        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
+            if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
+                addPieceInVector(currentSquare, next_square, possible_squares);
+        }
+
+        next_square = currentSquare + (1 * Rank) - 1;
+        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
+            if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
+                addPieceInVector(currentSquare, next_square, possible_squares);
+        }
+
+        next_square = currentSquare + (1 * Rank);
+        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
+            if (board[next_square] == 0)
+                addPieceInVector(currentSquare, next_square, possible_squares);
+        }
+    }else {
+        if (!isMoved) {
+            const int next_square = currentSquare + (-2 * Rank);
+            addPieceInVector(currentSquare, next_square,possible_squares);
+        }
+
+        int next_square = currentSquare + (-1 * Rank) + 1;
+        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
+            if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
+                addPieceInVector(currentSquare, next_square, possible_squares);
+        }
+
+        next_square = currentSquare + (-1 * Rank) - 1;
+        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
+            if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
+                addPieceInVector(currentSquare, next_square, possible_squares);
+        }
+
+        next_square = currentSquare + (-1 * Rank);
+        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
+            if (board[next_square] == 0)
+                addPieceInVector(currentSquare, next_square, possible_squares);
+        }
+    }
+    return possible_squares;
+}
+
+vector<uint8_t> getAllPossibleQueenMoves(const int currentSquare) {
+    vector<uint8_t> getAllRookMoves = getAllPossibleRookMoves(currentSquare);
+    vector<uint8_t> getAllBishopMoves = getAllPossibleBishopMoves(currentSquare);
+    for (const uint8_t bishopMoves: getAllBishopMoves)
+        getAllRookMoves.push_back(bishopMoves);
+
+    return getAllRookMoves;
+
+}
+
+//TODO: do king moves
+
+
+//--------------------------------------------------- BOARD RELATED FUNCTIONS -----------------------------------------
 
 //initializing board
 void clearBoard()
@@ -228,8 +359,8 @@ void resetBoard() {
     board[0] = createPiece(ROOK, false, false);
     board[1] = createPiece(KNIGHT, false, false);
     board[2] = createPiece(BISHOP, false, false);
-    board[3] = createPiece(KING, false, false);
-    board[4] = createPiece(QUEEN, false, false);
+    board[3] = createPiece(QUEEN, false, false);
+    board[4] = createPiece(KING, false, false);
     board[5] = createPiece(BISHOP, false, false);
     board[6] = createPiece(KNIGHT, false, false);
     board[7] = createPiece(ROOK, false, false);
@@ -242,8 +373,8 @@ void resetBoard() {
     board[56] = createPiece(ROOK, true, false);
     board[57] = createPiece(KNIGHT, true, false);
     board[58] = createPiece(BISHOP, true, false);
-    board[59] = createPiece(KING, true, false);
-    board[60] = createPiece(QUEEN, true, false);
+    board[59] = createPiece(QUEEN, true, false);
+    board[60] = createPiece(KING, true, false);
     board[61] = createPiece(BISHOP, true, false);
     board[62] = createPiece(KNIGHT, true, false);
     board[63] = createPiece(ROOK, true, false);
@@ -256,11 +387,11 @@ void resetBoard() {
 
 
 //piece decoding to char version for testing
-char pieceChar(uint8_t piece) {
+char pieceChar(const uint8_t piece) {
     if (piece == EMPTY) return '.';
 
-    int type = piece & 7;
-    int color = (piece >> 3) & 1;
+    const int type = decodePiece(piece);
+    const int color = decodeColorPiece(piece);
 
     char c = 0;
 
@@ -286,7 +417,7 @@ void printBoard()
     {
         for(int file = 0; file < 8; file++)
         {
-            int sq = rank*8 + file;
+            const int sq = rank*8 + file;
             std::cout << pieceChar(board[sq]) << " ";
         }
         std::cout << std::endl;
@@ -311,18 +442,21 @@ bool isValidMove(const int from, const int to) {
     switch (pieceType) {
         case KNIGHT: possibleMoves = getAllPossibleKnightMoves(from); break;
         case BISHOP: possibleMoves = getAllPossibleBishopMoves(from); break;
+        case ROOK: possibleMoves = getAllPossibleRookMoves(from); break;
+        case PAWN: possibleMoves = getAllPossiblePawnMoves(from); break;
+        case QUEEN: possibleMoves = getAllPossibleQueenMoves(from); break;
         default:
             cout << "Move generation not implemented for this piece yet.\n";
         return false;
     }
 
-    // cout << "possible moves are: ";
-    // for (const int sq : possibleMoves)
-    //     cout << sq << "-";
-    //
-    // cout << "\n";
+    cout << "possible moves are: ";
+    for (const int sq : possibleMoves)
+        cout << sq << "-";
 
-    for (int sq : possibleMoves)
+    cout << "\n";
+
+    for (const int sq : possibleMoves)
         if (sq == to) return true;
 
     return false;
