@@ -156,7 +156,7 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
         //check first quadrant
         if (!firstQuadrantComplete) {
             int next_possible_square_first_quad = (currentSquare + (Nextrank * Rank)) + Nextfile;
-            if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(currentSquare, next_possible_square_first_quad, Nextfile)) {
+            if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(currentSquare, next_possible_square_first_quad, Nextfile % 8)) {
                 bool addResult = addMoveInVector(currentSquare, next_possible_square_first_quad,possible_squares,board);
                 if (!addResult)
                     firstQuadrantComplete = true;
@@ -168,7 +168,7 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
         //check the second quadrant
         if (!SecondQuadrantComplete) {
             int next_possible_square_Second_quad = (currentSquare + (Nextrank * Rank)) - Nextfile;
-            if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(currentSquare, next_possible_square_Second_quad, Nextfile)) {
+            if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(currentSquare, next_possible_square_Second_quad, Nextfile % 8)) {
                 bool addResult = addMoveInVector(currentSquare, next_possible_square_Second_quad,possible_squares,board);
                 if (!addResult)
                     SecondQuadrantComplete = true;
@@ -180,7 +180,7 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
         //check the third quadrant
         if (!ThirdQuadrantComplete) {
             int next_possible_square_third_quad = (currentSquare + (-1 * Nextrank * Rank)) - Nextfile;
-            if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(currentSquare, next_possible_square_third_quad, Nextfile)) {
+            if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(currentSquare, next_possible_square_third_quad, Nextfile % 8)) {
                 bool addResult = addMoveInVector(currentSquare, next_possible_square_third_quad,possible_squares,board);
                 if (!addResult)
                     ThirdQuadrantComplete = true;
@@ -192,7 +192,7 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
         //check the third quadrant
         if (!fourthQuadrantComplete) {
             int next_possible_square_fourth_quad = (currentSquare + (-1 * Nextrank * Rank)) + Nextfile;
-            if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(currentSquare, next_possible_square_fourth_quad, Nextfile)) {
+            if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(currentSquare, next_possible_square_fourth_quad, Nextfile % 8)) {
                 bool addResult = addMoveInVector(currentSquare, next_possible_square_fourth_quad,possible_squares,board);
                 if (!addResult)
                     fourthQuadrantComplete = true;
@@ -224,7 +224,7 @@ vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]
     while (true) {
         if (!rightDirectionComplete) {
             int next_square = currentSquare + (NextFile);
-            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile)) {
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile * 8)) {
                 bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board);
                 if (!addResult)
                     rightDirectionComplete = true;
@@ -235,7 +235,7 @@ vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]
 
         if (!leftDirectionComplete) {
             int next_square = currentSquare + (-1 * NextFile);
-            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile)) {
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile % 8)) {
                 bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board);
                 if (!addResult)
                     leftDirectionComplete = true;
@@ -246,7 +246,7 @@ vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]
 
         if (!upDirectionComplete) {
             int next_square = currentSquare + (NextRank * 8);
-            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 0)) {
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 0 )) {
                 bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board);
                 if (!addResult)
                     upDirectionComplete = true;
@@ -287,13 +287,13 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[])
         }
 
         int next_square = currentSquare + (1 * Rank) + 1;
-        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
+        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
                 addMoveInVector(currentSquare, next_square, possible_squares,board);
         }
 
         next_square = currentSquare + (1 * Rank) - 1;
-        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
+        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
                 addMoveInVector(currentSquare, next_square, possible_squares,board);
         }
@@ -310,13 +310,13 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[])
         }
 
         int next_square = currentSquare + (-1 * Rank) + 1;
-        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
+        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
                 addMoveInVector(currentSquare, next_square, possible_squares,board);
         }
 
         next_square = currentSquare + (-1 * Rank) - 1;
-        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
+        if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
                 addMoveInVector(currentSquare, next_square, possible_squares,board);
         }
@@ -432,13 +432,13 @@ bool checkKnightCastingRays(const int kingsPosition, uint8_t board[]) {
     int knightCastRay = (kingsPosition + (2 * Rank)) + 1;
 
     if (!(knightCastRay > 63 || knightCastRay < 0) && !checkWrap(kingsPosition, knightCastRay, 1)) {
-        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay] != decodeColorPiece(board[kingsPosition])))
+        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay]) != decodeColorPiece(board[kingsPosition]))
             return true;
     }
 
     knightCastRay = (kingsPosition + (2 * Rank)) - 1;
     if (!(knightCastRay > 63 || knightCastRay < 0) && !checkWrap(kingsPosition, knightCastRay, 1)) {
-        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay] != decodeColorPiece(board[kingsPosition])))
+        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay]) != decodeColorPiece(board[kingsPosition]))
             return true;
     }
 
@@ -446,13 +446,13 @@ bool checkKnightCastingRays(const int kingsPosition, uint8_t board[]) {
     knightCastRay = (kingsPosition + (-2 * Rank)) + 1;
 
     if (!(knightCastRay > 63 || knightCastRay < 0) && !checkWrap(kingsPosition, knightCastRay, 1)) {
-        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay] != decodeColorPiece(board[kingsPosition])))
+        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay]) != decodeColorPiece(board[kingsPosition]))
             return true;
     }
 
     knightCastRay = (kingsPosition + (-2 * Rank)) - 1;
     if (!(knightCastRay > 63 || knightCastRay < 0) && !checkWrap(kingsPosition, knightCastRay, 1)) {
-        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay] != decodeColorPiece(board[kingsPosition])))
+        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay]) != decodeColorPiece(board[kingsPosition]))
             return true;
     }
 
@@ -460,13 +460,13 @@ bool checkKnightCastingRays(const int kingsPosition, uint8_t board[]) {
     knightCastRay = (kingsPosition + (1 * Rank)) + 2;
 
     if (!(knightCastRay > 63 || knightCastRay < 0) && !checkWrap(kingsPosition, knightCastRay, 2)) {
-        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay] != decodeColorPiece(board[kingsPosition])))
+        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay]) != decodeColorPiece(board[kingsPosition]))
             return true;
     }
 
     knightCastRay = (kingsPosition + (1 * Rank)) - 2;
     if (!(knightCastRay > 63 || knightCastRay < 0) && !checkWrap(kingsPosition, knightCastRay, 2)) {
-        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay] != decodeColorPiece(board[kingsPosition])))
+        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay]) != decodeColorPiece(board[kingsPosition]))
             return true;
     }
 
@@ -474,13 +474,13 @@ bool checkKnightCastingRays(const int kingsPosition, uint8_t board[]) {
     knightCastRay = (kingsPosition + (-1 * Rank)) + 2;
 
     if (!(knightCastRay > 63 || knightCastRay < 0) && !checkWrap(kingsPosition, knightCastRay, 2)) {
-        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay] != decodeColorPiece(board[kingsPosition])))
+        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay]) != decodeColorPiece(board[kingsPosition]))
             return true;
     }
 
     knightCastRay = (kingsPosition + (-1 * Rank)) - 2 ;
     if (!(knightCastRay > 63 || knightCastRay < 0) && !checkWrap(kingsPosition, knightCastRay, 2)) {
-        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay] != decodeColorPiece(board[kingsPosition])))
+        if (decodePiece(board[knightCastRay]) == KNIGHT && decodeColorPiece(board[knightCastRay]) != decodeColorPiece(board[kingsPosition]))
             return true;
     }
 
@@ -501,8 +501,8 @@ bool checkBishopAndQueenCastingRays(const int kingsPosition, uint8_t board[]) {
         //check first quadrant
         if (!firstQuadrantComplete) {
             int next_possible_square_first_quad = (kingsPosition + (Nextrank * Rank)) + Nextfile;
-            if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(kingsPosition, next_possible_square_first_quad, Nextfile)) {
-                if (decodePiece(board[next_possible_square_first_quad]) == BISHOP || decodePiece(board[next_possible_square_first_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_first_quad] != decodeColorPiece(board[kingsPosition])))
+            if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(kingsPosition, next_possible_square_first_quad, Nextfile % 8)) {
+                if (decodePiece(board[next_possible_square_first_quad]) == BISHOP || decodePiece(board[next_possible_square_first_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_first_quad]) != decodeColorPiece(board[kingsPosition]))
                     return true;
                 if (board[next_possible_square_first_quad] != EMPTY)
                     firstQuadrantComplete = true;
@@ -514,8 +514,8 @@ bool checkBishopAndQueenCastingRays(const int kingsPosition, uint8_t board[]) {
         //check the second quadrant
         if (!SecondQuadrantComplete) {
             int next_possible_square_Second_quad = (kingsPosition + (Nextrank * Rank)) - Nextfile;
-            if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(kingsPosition, next_possible_square_Second_quad, Nextfile)) {
-                if (decodePiece(board[next_possible_square_Second_quad]) == BISHOP || decodePiece(board[next_possible_square_Second_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_Second_quad] != decodeColorPiece(board[kingsPosition])))
+            if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(kingsPosition, next_possible_square_Second_quad, Nextfile % 8)) {
+                if (decodePiece(board[next_possible_square_Second_quad]) == BISHOP || decodePiece(board[next_possible_square_Second_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_Second_quad]) != decodeColorPiece(board[kingsPosition]))
                     return true;
                 if (board[next_possible_square_Second_quad] != EMPTY)
                     SecondQuadrantComplete = true;
@@ -527,8 +527,8 @@ bool checkBishopAndQueenCastingRays(const int kingsPosition, uint8_t board[]) {
         //check the third quadrant
         if (!ThirdQuadrantComplete) {
             int next_possible_square_third_quad = (kingsPosition + (-1 * Nextrank * Rank)) - Nextfile;
-            if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(kingsPosition, next_possible_square_third_quad, Nextfile)) {
-                if (decodePiece(board[next_possible_square_third_quad]) == BISHOP || decodePiece(board[next_possible_square_third_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_third_quad] != decodeColorPiece(board[kingsPosition])))
+            if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(kingsPosition, next_possible_square_third_quad, Nextfile % 8)) {
+                if (decodePiece(board[next_possible_square_third_quad]) == BISHOP || decodePiece(board[next_possible_square_third_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_third_quad]) != decodeColorPiece(board[kingsPosition]))
                     return true;
                 if (board[next_possible_square_third_quad] != EMPTY)
                     ThirdQuadrantComplete = true;
@@ -540,8 +540,8 @@ bool checkBishopAndQueenCastingRays(const int kingsPosition, uint8_t board[]) {
         //check the third quadrant
         if (!fourthQuadrantComplete) {
             int next_possible_square_fourth_quad = (kingsPosition + (-1 * Nextrank * Rank)) + Nextfile;
-            if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(kingsPosition, next_possible_square_fourth_quad, Nextfile)) {
-                if (decodePiece(board[next_possible_square_fourth_quad]) == BISHOP || decodePiece(board[next_possible_square_fourth_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_fourth_quad] != decodeColorPiece(board[kingsPosition])))
+            if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(kingsPosition, next_possible_square_fourth_quad, Nextfile % 8)) {
+                if ((decodePiece(board[next_possible_square_fourth_quad]) == BISHOP || decodePiece(board[next_possible_square_fourth_quad]) ==  QUEEN) && decodeColorPiece(board[next_possible_square_fourth_quad]) != decodeColorPiece(board[kingsPosition]))
                     return true;
                 if (board[next_possible_square_fourth_quad] != EMPTY)
                     fourthQuadrantComplete = true;
@@ -571,8 +571,8 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
     while (true) {
         if (!rightDirectionComplete) {
             int next_square = kingPosition + (NextFile);
-            if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, NextFile)) {
-                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square] != decodeColorPiece(board[kingPosition])))
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, NextFile % 8)) {
+                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
                     return true;
                 if (board[next_square] != EMPTY)
                     rightDirectionComplete = true;
@@ -584,7 +584,7 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
         if (!leftDirectionComplete) {
             int next_square = kingPosition + (-1 * NextFile);
             if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, NextFile)) {
-                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square] != decodeColorPiece(board[kingPosition])))
+                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
                     return true;
                 if (board[next_square] != EMPTY)
                     leftDirectionComplete = true;
@@ -596,7 +596,7 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
         if (!upDirectionComplete) {
             int next_square = kingPosition + (NextRank * 8);
             if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, 0)) {
-                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square] != decodeColorPiece(board[kingPosition])))
+                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
                     return true;
                 if (board[next_square] != EMPTY)
                     upDirectionComplete = true;
@@ -608,7 +608,7 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
         if (!downDirectionComplete) {
             int next_square = kingPosition + (-1 * NextRank * 8);
             if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, 0)) {
-                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square] != decodeColorPiece(board[kingPosition])))
+                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
                     return true;
                 if (board[next_square] != EMPTY)
                     downDirectionComplete = true;
@@ -753,7 +753,7 @@ GameState movePiece(const int from, const int to, GameState currentState) {
 
     currentState.board[to] = setHasMoved(currentState.board[from]);
     currentState.board[from] = EMPTY;
-    if (decodeColorPiece(currentState.board[from]) == 1) {
+    if (currentState.colorsTurn == 1) {
         if (decodePiece(currentState.board[to]) == KING)
             currentState.blackKingsCurrentSquare = to;
         currentState.colorsTurn = 0;
@@ -761,6 +761,7 @@ GameState movePiece(const int from, const int to, GameState currentState) {
     else {
         if (decodePiece(currentState.board[to]) == KING)
             currentState.whiteKingsCurrentSquare = to;
+
         currentState.colorsTurn = 1;
     }
 
@@ -801,10 +802,15 @@ bool isValidMove(const int from, const int to,GameState currentState) {
     for (const int sq : possibleMoves)
         if (sq == to){ movePossible =  true; break;}
 
+    cout<<"Possible moves: ";
+    for (const int sq : possibleMoves)
+        cout<<sq << " ";
+    cout<<endl;
+
     //simulate move and check if king is in check
     if (movePossible) {
         GameState tempState = movePiece(from, to, currentState);
-        if (tempState.colorsTurn == 0) {
+        if (currentState.colorsTurn == 1) {
             tempState.kingInCheck = isKingInCheck(tempState.blackKingsCurrentSquare, tempState.board);
         }else {
             tempState.kingInCheck = isKingInCheck(tempState.whiteKingsCurrentSquare, tempState.board);
@@ -822,7 +828,7 @@ bool isValidMove(const int from, const int to,GameState currentState) {
 }
 
 
-void gameLoop(const GameState &startState) {
+void gameLoop(const GameState startState) {
     string input;
     int from, to;
 
