@@ -46,7 +46,7 @@ uint8_t setHasMoved(const uint8_t piece) {
     return piece | 16;
 }
 
-//create piece method
+
 uint8_t createPiece(uint8_t piece,const bool isBlack, const bool hasMoved) {
 
     if (isBlack) {
@@ -148,64 +148,73 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
     bool fourthQuadrantComplete = false;
 
     vector<uint8_t> possible_squares;
-    int Nextfile = 1;
-    int Nextrank = 1;
+
+
+    int firstQuadPrevSquare = currentSquare, secondQuadPrevSquare = currentSquare, thirdQuadPrevSquare = currentSquare, fourthQuadPrevSquare = currentSquare;
+
 
     while (true) {
+        constexpr int Nextfile = 1;
+        constexpr int Nextrank = 1;
 
         //check first quadrant
         if (!firstQuadrantComplete) {
-            int next_possible_square_first_quad = (currentSquare + (Nextrank * Rank)) + Nextfile;
-            if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(currentSquare, next_possible_square_first_quad, Nextfile % 8)) {
+            int next_possible_square_first_quad = (firstQuadPrevSquare + (Nextrank * Rank)) + Nextfile;
+
+            if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(firstQuadPrevSquare, next_possible_square_first_quad, 1)) {
                 bool addResult = addMoveInVector(currentSquare, next_possible_square_first_quad,possible_squares,board);
                 if (!addResult)
                     firstQuadrantComplete = true;
             }else {
                 firstQuadrantComplete = true;
             }
+
+            firstQuadPrevSquare = next_possible_square_first_quad;
         }
 
         //check the second quadrant
         if (!SecondQuadrantComplete) {
-            int next_possible_square_Second_quad = (currentSquare + (Nextrank * Rank)) - Nextfile;
-            if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(currentSquare, next_possible_square_Second_quad, Nextfile % 8)) {
+            int next_possible_square_Second_quad = (secondQuadPrevSquare + (Nextrank * Rank)) - Nextfile;
+            if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(secondQuadPrevSquare, next_possible_square_Second_quad, 1)) {
                 bool addResult = addMoveInVector(currentSquare, next_possible_square_Second_quad,possible_squares,board);
                 if (!addResult)
                     SecondQuadrantComplete = true;
             }else {
                 SecondQuadrantComplete = true;
             }
+            secondQuadPrevSquare = next_possible_square_Second_quad;
         }
 
         //check the third quadrant
         if (!ThirdQuadrantComplete) {
-            int next_possible_square_third_quad = (currentSquare + (-1 * Nextrank * Rank)) - Nextfile;
-            if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(currentSquare, next_possible_square_third_quad, Nextfile % 8)) {
-                bool addResult = addMoveInVector(currentSquare, next_possible_square_third_quad,possible_squares,board);
+            int next_possible_square_third_quad = (thirdQuadPrevSquare + (-1 * Nextrank * Rank)) - Nextfile;
+            if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(thirdQuadPrevSquare, next_possible_square_third_quad, 1)) {
+                bool addResult = addMoveInVector(thirdQuadPrevSquare, next_possible_square_third_quad,possible_squares,board);
                 if (!addResult)
                     ThirdQuadrantComplete = true;
             }else {
                 ThirdQuadrantComplete = true;
             }
+
+            thirdQuadPrevSquare = next_possible_square_third_quad;
         }
 
         //check the third quadrant
         if (!fourthQuadrantComplete) {
-            int next_possible_square_fourth_quad = (currentSquare + (-1 * Nextrank * Rank)) + Nextfile;
-            if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(currentSquare, next_possible_square_fourth_quad, Nextfile % 8)) {
-                bool addResult = addMoveInVector(currentSquare, next_possible_square_fourth_quad,possible_squares,board);
+            int next_possible_square_fourth_quad = (fourthQuadPrevSquare + (-1 * Nextrank * Rank)) + Nextfile;
+            if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(fourthQuadPrevSquare, next_possible_square_fourth_quad, 1)) {
+                bool addResult = addMoveInVector(fourthQuadPrevSquare, next_possible_square_fourth_quad,possible_squares,board);
                 if (!addResult)
                     fourthQuadrantComplete = true;
             }else {
                 fourthQuadrantComplete = true;
             }
+
+            fourthQuadPrevSquare = next_possible_square_fourth_quad;
         }
 
         if ( firstQuadrantComplete && SecondQuadrantComplete && ThirdQuadrantComplete && fourthQuadrantComplete)
             break;
-
-        Nextfile++;
-        Nextrank++;
     }
 
     return possible_squares;
@@ -493,68 +502,82 @@ bool checkBishopAndQueenCastingRays(const int kingsPosition, uint8_t board[]) {
     bool ThirdQuadrantComplete = false;
     bool fourthQuadrantComplete = false;
 
-    int Nextfile = 1;
-    int Nextrank = 1;
+    int firstQuadPrevSquare = kingsPosition, secondQuadPrevSquare = kingsPosition, thirdQuadPrevSquare = kingsPosition, fourthQuadPrevSquare = kingsPosition;
 
     while (true) {
+        constexpr int Nextrank = 1;
+        constexpr int Nextfile = 1;
 
         //check first quadrant
         if (!firstQuadrantComplete) {
-            int next_possible_square_first_quad = (kingsPosition + (Nextrank * Rank)) + Nextfile;
-            if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(kingsPosition, next_possible_square_first_quad, Nextfile % 8)) {
+            int next_possible_square_first_quad = (firstQuadPrevSquare + (Nextrank * Rank)) + Nextfile;
+            if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(firstQuadPrevSquare, next_possible_square_first_quad, 1)) {
                 if (decodePiece(board[next_possible_square_first_quad]) == BISHOP || decodePiece(board[next_possible_square_first_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_first_quad]) != decodeColorPiece(board[kingsPosition]))
+                    return true;
+                if (decodePiece(board[next_possible_square_first_quad]) == PAWN && decodeColorPiece(board[next_possible_square_first_quad]) != decodeColorPiece(board[kingsPosition]) && !checkWrap(kingsPosition, next_possible_square_first_quad, 1) )
                     return true;
                 if (board[next_possible_square_first_quad] != EMPTY)
                     firstQuadrantComplete = true;
             }else {
                 firstQuadrantComplete = true;
             }
+
+            firstQuadPrevSquare =  next_possible_square_first_quad;
         }
 
         //check the second quadrant
         if (!SecondQuadrantComplete) {
-            int next_possible_square_Second_quad = (kingsPosition + (Nextrank * Rank)) - Nextfile;
-            if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(kingsPosition, next_possible_square_Second_quad, Nextfile % 8)) {
+            int next_possible_square_Second_quad = (secondQuadPrevSquare + (Nextrank * Rank)) - Nextfile;
+            if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(secondQuadPrevSquare, next_possible_square_Second_quad, 1)) {
                 if (decodePiece(board[next_possible_square_Second_quad]) == BISHOP || decodePiece(board[next_possible_square_Second_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_Second_quad]) != decodeColorPiece(board[kingsPosition]))
+                    return true;
+                if (decodePiece(board[next_possible_square_Second_quad]) == PAWN && decodeColorPiece(board[next_possible_square_Second_quad]) != decodeColorPiece(board[kingsPosition]) && !checkWrap(kingsPosition, next_possible_square_Second_quad, 1) )
                     return true;
                 if (board[next_possible_square_Second_quad] != EMPTY)
                     SecondQuadrantComplete = true;
             }else {
                 SecondQuadrantComplete = true;
             }
+            secondQuadPrevSquare = next_possible_square_Second_quad;
         }
 
         //check the third quadrant
         if (!ThirdQuadrantComplete) {
-            int next_possible_square_third_quad = (kingsPosition + (-1 * Nextrank * Rank)) - Nextfile;
-            if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(kingsPosition, next_possible_square_third_quad, Nextfile % 8)) {
+            int next_possible_square_third_quad = (thirdQuadPrevSquare + (-1 * Nextrank * Rank)) - Nextfile;
+            if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(thirdQuadPrevSquare, next_possible_square_third_quad, 1)) {
                 if (decodePiece(board[next_possible_square_third_quad]) == BISHOP || decodePiece(board[next_possible_square_third_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_third_quad]) != decodeColorPiece(board[kingsPosition]))
+                    return true;
+
+                if (decodePiece(board[next_possible_square_third_quad]) == PAWN && decodeColorPiece(board[next_possible_square_third_quad]) != decodeColorPiece(board[kingsPosition]) && !checkWrap(kingsPosition, next_possible_square_third_quad, 1) )
                     return true;
                 if (board[next_possible_square_third_quad] != EMPTY)
                     ThirdQuadrantComplete = true;
             }else {
                 ThirdQuadrantComplete = true;
             }
+
+            thirdQuadPrevSquare = next_possible_square_third_quad;
         }
 
         //check the third quadrant
         if (!fourthQuadrantComplete) {
-            int next_possible_square_fourth_quad = (kingsPosition + (-1 * Nextrank * Rank)) + Nextfile;
-            if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(kingsPosition, next_possible_square_fourth_quad, Nextfile % 8)) {
+            int next_possible_square_fourth_quad = (fourthQuadPrevSquare + (-1 * Nextrank * Rank)) + Nextfile;
+            if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(fourthQuadPrevSquare, next_possible_square_fourth_quad, 1)) {
                 if ((decodePiece(board[next_possible_square_fourth_quad]) == BISHOP || decodePiece(board[next_possible_square_fourth_quad]) ==  QUEEN) && decodeColorPiece(board[next_possible_square_fourth_quad]) != decodeColorPiece(board[kingsPosition]))
+                    return true;
+                if (decodePiece(board[next_possible_square_fourth_quad]) == PAWN && decodeColorPiece(board[next_possible_square_fourth_quad]) != decodeColorPiece(board[kingsPosition]) && !checkWrap(kingsPosition, next_possible_square_fourth_quad, 1) )
                     return true;
                 if (board[next_possible_square_fourth_quad] != EMPTY)
                     fourthQuadrantComplete = true;
             }else {
                 fourthQuadrantComplete = true;
             }
+
+            fourthQuadPrevSquare = next_possible_square_fourth_quad;
         }
 
         if ( firstQuadrantComplete && SecondQuadrantComplete && ThirdQuadrantComplete && fourthQuadrantComplete)
             break;
-
-        Nextfile++;
-        Nextrank++;
     }
 
     return false;
@@ -871,7 +894,7 @@ void gameLoop(const GameState startState) {
 
 int main() {
     GameState startState;
-    clearBoard(startState);
+    startState = clearBoard(startState);
     startState = resetBoard(startState);
     gameLoop(startState);
 }
