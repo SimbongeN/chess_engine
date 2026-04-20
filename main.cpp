@@ -299,17 +299,19 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[],
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
                 addMoveInVector(currentSquare, next_square, possible_squares,board);
-            if (next_square == unpasentSquare)
-                possible_squares.push_back(next_square);
+
         }
+        if (next_square == unpasentSquare)
+            possible_squares.push_back(next_square);
 
         next_square = currentSquare + (1 * Rank) - 1;
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
                 addMoveInVector(currentSquare, next_square, possible_squares,board);
-            if (next_square == unpasentSquare)
-                possible_squares.push_back(next_square);
+
         }
+        if (next_square == unpasentSquare)
+            possible_squares.push_back(next_square);
 
         next_square = currentSquare + (1 * Rank);
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
@@ -326,17 +328,18 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[],
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
                 addMoveInVector(currentSquare, next_square, possible_squares,board);
-            if (next_square == unpasentSquare)
-                possible_squares.push_back(next_square);
         }
+        if (next_square == unpasentSquare)
+            possible_squares.push_back(next_square);
 
         next_square = currentSquare + (-1 * Rank) - 1;
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
                 addMoveInVector(currentSquare, next_square, possible_squares,board);
-            if (next_square == unpasentSquare)
-                possible_squares.push_back(next_square);
+
         }
+        if (next_square == unpasentSquare)
+            possible_squares.push_back(next_square);
 
         next_square = currentSquare + (-1 * Rank);
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
@@ -516,8 +519,8 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
     while (true) {
         if (!rightDirectionComplete) {
             int next_square = kingPosition + (NextFile);
-            if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, NextFile % 8)) {
-                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, 8)) {
+                if ( (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN) && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
                     return true;
                 if (board[next_square] != EMPTY)
                     rightDirectionComplete = true;
@@ -528,8 +531,8 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
 
         if (!leftDirectionComplete) {
             int next_square = kingPosition + (-1 * NextFile);
-            if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, NextFile)) {
-                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, 8)) {
+                if ( (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN  )&& decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
                     return true;
                 if (board[next_square] != EMPTY)
                     leftDirectionComplete = true;
@@ -553,7 +556,7 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
         if (!downDirectionComplete) {
             int next_square = kingPosition + (-1 * NextRank * 8);
             if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, 0)) {
-                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
+                if ((decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN) && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
                     return true;
                 if (board[next_square] != EMPTY)
                     downDirectionComplete = true;
@@ -593,8 +596,8 @@ bool isKingSideCastingPossible(const int currentSquare, uint8_t board[]) {
     if (decodePiece(board[currentSquare + 3]) != ROOK)
         return false;
 
-    for (int i = 1; i <= 3; i++)
-        if (board[currentSquare + i] != EMPTY || isKingInCheck(currentSquare, board))
+    for (int i = 1; i < 3; i++)
+        if (board[currentSquare + i] != EMPTY || isKingInCheck(currentSquare-i, board))
             return false;
     if (hasMoved(board[currentSquare + 3]))
         return false;
@@ -610,8 +613,8 @@ bool isQueenSideCastingPossible(const int currentSquare, uint8_t board[]) {
     if (decodePiece(board[currentSquare - 4]) != ROOK)
         return false;
 
-    for (int i = 1; i <= 4; i++)
-        if (board[currentSquare + i] != EMPTY || isKingInCheck(currentSquare, board))
+    for (int i = 1; i < 4; i++)
+        if (board[currentSquare + i] != EMPTY || isKingInCheck(currentSquare+i, board))
             return false;
     if (hasMoved(board[currentSquare - 4]))
         return false;
@@ -663,11 +666,11 @@ vector<uint8_t> getAllPossibleKingMoves(const int currentSquare, uint8_t board[]
     }
 
     if (isKingSideCastingPossible(currentSquare, board) && !kingInCheck) {
-        addMoveInVector(currentSquare, 2, possible_squares, board);
+        possible_squares.push_back(currentSquare + 2);
     }
 
     if (isQueenSideCastingPossible(currentSquare, board) && !kingInCheck) {
-        addMoveInVector(currentSquare, 2, possible_squares, board);
+        possible_squares.push_back(currentSquare - 2);
     }
 
     return possible_squares;
@@ -675,7 +678,7 @@ vector<uint8_t> getAllPossibleKingMoves(const int currentSquare, uint8_t board[]
 
 
 int getUnpasantSquare(int from , int to, int pawnColor) {
-    if (abs(to - from) == 8) {
+    if (abs(to - from) <= 8) {
         return 0;
     }
     return pawnColor == 1 ? to + 8: to - 8;
@@ -791,12 +794,26 @@ GameState movePiece(const int from, const int to, GameState currentState) {
         }
     }
 
+    //do castling
+    if (decodePiece(currentState.board[from]) == KING && ( abs(from - to) == 2)) {
+        //move the rook coz the king will be moved when moving of pieces is moved
+        if (from < to) {
+            //king side castling
+            currentState.board[from + 1] = setHasMoved(currentState.board[7]);
+            currentState.board[7] = EMPTY;
+        }else {
+            currentState.board[from - 1] = setHasMoved(currentState.board[0]);
+            currentState.board[0] = EMPTY;
+        }
+    }
+
     if (decodePiece(currentState.board[from]) == PAWN) {
         currentState.unpasentSquare = getUnpasantSquare(from, to, decodeColorPiece(currentState.board[from]));
     }else {
         currentState.unpasentSquare = 0;
     }
 
+    //move piece pieces
     currentState.board[to] = setHasMoved(currentState.board[from]);
     currentState.board[from] = EMPTY;
     if (currentState.colorsTurn == 1) {
@@ -834,7 +851,7 @@ bool isValidMove(const int from, const int to,GameState currentState) {
         case KNIGHT: possibleMoves = getAllPossibleKnightMoves(from, currentState.board); break;
         case BISHOP: possibleMoves = getAllPossibleBishopMoves(from, currentState.board); break;
         case ROOK: possibleMoves = getAllPossibleRookMoves(from, currentState.board); break;
-        case PAWN: possibleMoves = getAllPossiblePawnMoves(from, currentState.board, currentState.unpasentSquare); break;
+        case PAWN: possibleMoves = getAllPossiblePawnMoves(from, currentState.board,currentState.unpasentSquare); break;
         case QUEEN: possibleMoves = getAllPossibleQueenMoves(from, currentState.board); break;
         case KING: possibleMoves =  getAllPossibleKingMoves(from, currentState.board, currentState.kingInCheck); break;
         default:
@@ -867,12 +884,39 @@ bool isValidMove(const int from, const int to,GameState currentState) {
         else
             movePossible = true;
     }
-
-
-
     return movePossible;
 }
 
+int getPromotionChoice() {
+    int choice;
+
+    while (true) {
+        cout << "Promote pawn to:\n";
+        cout << "5. Queen\n";
+        cout << "4. Rook\n";
+        cout << "3. Bishop\n";
+        cout << "2. Knight\n";
+        cout << "Enter choice (2-5): ";
+
+        cin >> choice;
+
+        // Check if input failed (non-integer)
+        if (cin.fail()) {
+            cin.clear(); // clear error flag
+            cin.ignore(1000, '\n'); // discard bad input
+            cout << "Invalid input. Please enter an integer.\n";
+            continue;
+        }
+
+        // Check if integer is in valid range
+        if (choice >= 2 && choice <= 5) {
+            return choice;
+        }
+
+        cout << "Invalid choice. Please enter a number between 1 and 4.\n";
+
+    }
+}
 
 void gameLoop(const GameState startState) {
     string input;
@@ -905,12 +949,52 @@ void gameLoop(const GameState startState) {
             continue;
         }
 
+        if (state.kingInCheck) {
+            cout << "King in check. \n";
+        }
+
         if (!isValidMove(from, to,state)) {
             cout << "Illegal move.\n";
             continue;
         }
 
+        //check if it's a pawn and if it's in the last rank for promotion
+        bool promotion = false;
+        uint8_t promotionPiece = 0;
+        if (decodePiece(state.board[from]) == PAWN && ( (to >= 0 && to <= 7) || (to >= 56 && to < 63) ) ) {
+            // Use the choice
+            switch (getPromotionChoice()) {
+                case 2:
+                    cout << "Promoted to Knight\n";
+                    promotionPiece = state.colorsTurn == 1 ? createPiece(KNIGHT, true, true) : createPiece(KNIGHT, false, true);
+                    promotion = true;
+                    break;
+                case 3:
+                    cout << "Promoted to Bishop\n";
+                    promotionPiece = state.colorsTurn == 1 ? createPiece(BISHOP, true, true) : createPiece(BISHOP, false, true);
+                    promotion = true;
+                    break;
+                case 4:
+                    cout << "Promoted to Rook\n";
+                    promotionPiece = state.colorsTurn == 1 ? createPiece(ROOK, true, true) : createPiece(ROOK, false, true);
+                    promotion = true;
+                    break;
+                case 5:
+                    cout << "Promoted to Queen\n";
+                    promotionPiece = state.colorsTurn == 1 ? createPiece(QUEEN, true, true) : createPiece(QUEEN, false, true);
+                    promotion = true;
+                    break;
+                default:
+                    promotion = false;
+                    promotionPiece = 0;
+                    break;
+            }
+        }
+
         state = movePiece(from, to,state);
+        if (promotion) {
+            state.board[to] = promotionPiece;
+        }
     }
 }
 
