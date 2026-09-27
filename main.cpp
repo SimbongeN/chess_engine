@@ -360,7 +360,6 @@ vector<uint8_t> getAllPossibleQueenMoves(const int currentSquare, uint8_t board[
 
 }
 
-
 bool checkKnightCastingRays(const int kingsPosition, uint8_t board[]) {
     //first two condition is for [+2 rank, -2 rank] [+1 file, -1 file]
     int knightCastRay = (kingsPosition + (2 * Rank)) + 1;
@@ -679,7 +678,7 @@ vector<uint8_t> getAllPossibleKingMoves(const int currentSquare, uint8_t board[]
 
 int getUnpasantSquare(int from , int to, int pawnColor) {
     if (abs(to - from) <= 8) {
-        return 0;
+        return 0;   
     }
     return pawnColor == 1 ? to + 8: to - 8;
 }
@@ -696,6 +695,9 @@ struct GameState {
     uint8_t blackKingsCurrentSquare = 60;
     uint8_t whiteKingsCurrentSquare = 4;
     bool checkMate = isKingInCheck(whiteKingsCurrentSquare, board);
+
+    uint64_t blackPieces = 0;
+    uint64_t whitePieces = 0;
 };
 
 //initializing board
@@ -723,6 +725,9 @@ GameState resetBoard(GameState currentSate) {
     for (int i = 8 ; i < 16; i++ )
         currentSate.board[i] = createPiece(PAWN, false,false);
 
+    //set the first 16 pits to 1 to for white pieces
+    currentSate.whitePieces = currentSate.whitePieces | ((1ULL < 16) - 1);
+
     // black pieces
     currentSate.board[56] = createPiece(ROOK, true, false);
     currentSate.board[57] = createPiece(KNIGHT, true, false);
@@ -733,9 +738,12 @@ GameState resetBoard(GameState currentSate) {
     currentSate.board[62] = createPiece(KNIGHT, true, false);
     currentSate.board[63] = createPiece(ROOK, true, false);
 
-    //white pawn pieces
+    //black pawn pieces
     for (int i = 48 ; i < 56; i++ )
         currentSate.board[i] = createPiece(PAWN, true, false);
+
+    currentSate.blackPieces = currentSate.blackPieces | ((1ULL << 16) - 1) << 48;
+
 
     return currentSate;
 
@@ -780,6 +788,10 @@ void printBoard(uint8_t board[])
     }
 }
 
+/*
+ * important: when moving piece update piece bitbord to indicate its new position the bitboard that
+ *            holds eg while player pieces/ black piece
+ */
 GameState movePiece(const int from, const int to, GameState currentState) {
 
     //capture en peasant squares
@@ -788,22 +800,63 @@ GameState movePiece(const int from, const int to, GameState currentState) {
         if (currentState.colorsTurn == 1) {
             int const currentPawnSquare = to + 8;
             currentState.board[currentPawnSquare] = EMPTY;
+
+            //update player one piece in pieces bitboard
+            /*
+             * Step 1: turn the old sqaure bit into 0 to indicate its no piece exist there
+             * Step 2: turn the new sqaure bit into1 to indicate where the piece is at now
+             */
+            currentState.blackPieces = currentState.blackPieces ^ (1ULL << currentState.unpasentSquare);
+            currentState.blackPieces = currentState.blackPieces | (1ULL << currentState.unpasentSquare);
         }else {
             int const currentPawnSquare = to - 8;
             currentState.board[currentPawnSquare] = EMPTY;
+            //update player one piece in pieces bitboard
+            /*
+             * Step 1: turn the old sqaure bit into 0 to indicate its no piece exist there
+             * Step 2: turn the new sqaure bit into1 to indicate where the piece is at now
+             */
+            currentState.whitePieces = currentState.whitePieces ^ (1ULL << currentState.unpasentSquare);
+            currentState.whitePieces = currentState.whitePieces | (1ULL << currentState.unpasentSquare);
         }
     }
 
     //do castling
     if (decodePiece(currentState.board[from]) == KING && ( abs(from - to) == 2)) {
         //move the rook coz the king will be moved when moving of pieces is moved
-        if (from < to) {
-            //king side castling
-            currentState.board[from + 1] = setHasMoved(currentState.board[7]);
-            currentState.board[7] = EMPTY;
+        if (currentState.colorsTurn == 0) {
+            if (from < to) {
+                //king side castling for white pieces
+                currentState.board[from + 1] = setHasMoved(currentState.board[7]);
+                currentState.board[7] = EMPTY;
+
+                //update the rooks position the blacks piece bitbord
+                currentState.whitePieces = currentState.whitePieces ^ (1ULL << 7);
+                currentState.whitePieces = currentState.whitePieces | (1ULL << (from + 1));
+            }else {
+                currentState.board[from - 1] = setHasMoved(currentState.board[0]);
+                currentState.board[0] = EMPTY;
+
+                currentState.whitePieces = currentState.whitePieces ^ (1ULL);
+                currentState.whitePieces = currentState.whitePieces | (1ULL << (from - 1));
+            }
         }else {
-            currentState.board[from - 1] = setHasMoved(currentState.board[0]);
-            currentState.board[0] = EMPTY;
+            if (from < to) {
+                //king side castling for black pieces
+                currentState.board[from + 1] = setHasMoved(currentState.board[63]);
+                currentState.board[63] = EMPTY;
+
+                //update the rooks position the blacks piece bitbord
+                currentState.blackPieces = currentState.blackPieces ^ (1ULL << 63);
+                currentState.blackPieces = currentState.blackPieces | (1ULL << (from + 1));
+            }else {
+                currentState.board[from - 1] = setHasMoved(currentState.board[56]);
+                currentState.board[56] = EMPTY;
+
+                //update the rooks position the blacks piece bitbord
+                currentState.blackPieces = currentState.blackPieces ^ (1ULL << 56);
+                currentState.blackPieces = currentState.blackPieces | (1ULL << (from - 1));
+            }
         }
     }
 
@@ -820,12 +873,20 @@ GameState movePiece(const int from, const int to, GameState currentState) {
         if (decodePiece(currentState.board[to]) == KING)
             currentState.blackKingsCurrentSquare = to;
         currentState.colorsTurn = 0;
+
+        //update black pieces bitboard
+        currentState.blackPieces = currentState.blackPieces ^ (1ULL << from);
+        currentState.blackPieces = currentState.blackPieces | (1ULL << to);
     }
     else {
         if (decodePiece(currentState.board[to]) == KING)
             currentState.whiteKingsCurrentSquare = to;
 
         currentState.colorsTurn = 1;
+
+        //update black pieces bitboard
+        currentState.whitePieces = currentState.whitePieces ^ (1ULL << from);
+        currentState.whitePieces = currentState.whitePieces | (1ULL << to);
     }
 
     return currentState;
@@ -859,6 +920,7 @@ bool isValidMove(const int from, const int to,GameState currentState) {
         return false;
     }
 
+    //TODO: change use move bitboard of 64 bit integer
     bool movePossible = false;
     for (const int sq : possibleMoves)
         if (sq == to){ movePossible =  true; break;}
