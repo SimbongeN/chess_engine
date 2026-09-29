@@ -752,7 +752,6 @@ struct GameState {
     bool kingInCheck = false;
     uint8_t blackKingsCurrentSquare = 60;
     uint8_t whiteKingsCurrentSquare = 4;
-    bool checkMate = isKingInCheck(whiteKingsCurrentSquare, board);
 
     uint64_t blackPieces = 0;
     uint64_t whitePieces = 0;
@@ -928,24 +927,30 @@ GameState movePiece(const int from, const int to, GameState currentState) {
     currentState.board[to] = setHasMoved(currentState.board[from]);
     currentState.board[from] = EMPTY;
     if (currentState.colorsTurn == 1) {
-        if (decodePiece(currentState.board[to]) == KING)
+        if (decodePiece(currentState.board[to]) == KING) {
             currentState.blackKingsCurrentSquare = to;
-        currentState.colorsTurn = 0;
+        }
 
+        currentState.colorsTurn = 0;
         //update black pieces bitboard
         currentState.blackPieces = currentState.blackPieces ^ (1ULL << from);
         currentState.blackPieces = currentState.blackPieces | (1ULL << to);
+        //chek if king is in check
+        currentState.kingInCheck = isKingInCheck(currentState.blackKingsCurrentSquare, currentState.board);
     }
     else {
-        if (decodePiece(currentState.board[to]) == KING)
+        if (decodePiece(currentState.board[to]) == KING) {
             currentState.whiteKingsCurrentSquare = to;
-
+        }
         currentState.colorsTurn = 1;
-
         //update black pieces bitboard
         currentState.whitePieces = currentState.whitePieces ^ (1ULL << from);
         currentState.whitePieces = currentState.whitePieces | (1ULL << to);
+        //chek if king is in check
+        currentState.kingInCheck = isKingInCheck(currentState.whiteKingsCurrentSquare, currentState.board);
     }
+
+
 
     return currentState;
 }
@@ -970,7 +975,8 @@ bool isCheckMate( uint64_t allPlayerPieces,  GameState currentState) {
             default: return false;
         }
 
-        if(!pieceMoves.empty()) return false;
+        if(!pieceMoves.empty())
+            return false;
 
         if(piece_sqaure == 63)
             allPlayerPieces = 0;
@@ -978,12 +984,13 @@ bool isCheckMate( uint64_t allPlayerPieces,  GameState currentState) {
             allPlayerPieces = (allPlayerPieces >> (piece_sqaure + 1)) << (piece_sqaure + 1);
     }
 
-    return currentState.kingInCheck;
+    return true;
 }
 
 bool isStaleMate(const uint64_t allPlayerPieces,  GameState currentState) {
 
-    if(currentState.kingInCheck) return false;
+    if(currentState.kingInCheck == true)
+        return false;
 
     int kingsPosition = (currentState.colorsTurn == 1) ? currentState.blackKingsCurrentSquare : currentState.whiteKingsCurrentSquare;
 
@@ -1002,7 +1009,8 @@ bool isStaleMate(const uint64_t allPlayerPieces,  GameState currentState) {
             default: return false;
         }
 
-        if(!pieceMoves.empty()) return false;
+        if(!pieceMoves.empty())
+            return false;
     }
 
     return true;
@@ -1127,6 +1135,7 @@ void gameLoop(const GameState startState) {
             cout << "Squares must be between 0 and 63.\n";
             continue;
         }
+
 
         if (state.kingInCheck) {
             uint64_t allPlayerPiece = (startState.colorsTurn == 1) ? startState.blackPieces : startState.whitePieces;
