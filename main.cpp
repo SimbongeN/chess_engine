@@ -420,7 +420,7 @@ bool checkKnightCastingRays(const int kingsPosition, uint8_t board[]) {
     return false;
 }
 
-bool checkBishopAndQueenCastingRays(const int kingsPosition, uint8_t board[]) {
+bool checkBishopPawnAndQueenCastingRays(const int kingsPosition, uint8_t board[]) {
     bool firstQuadrantComplete = false;
     bool SecondQuadrantComplete = false;
     bool ThirdQuadrantComplete = false;
@@ -575,11 +575,12 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
 
 }
 
+
 bool isKingInCheck(const int kingsPosition, uint8_t board[]) {
     if (checkKnightCastingRays(kingsPosition, board))
         return true;
 
-    if (checkBishopAndQueenCastingRays(kingsPosition, board))
+    if (checkBishopPawnAndQueenCastingRays(kingsPosition, board))
         return true;
 
     if (checkRookAndQueenCastingRays(kingsPosition, board))
