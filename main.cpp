@@ -57,6 +57,14 @@ uint8_t createPiece(uint8_t piece,const bool isBlack, const bool hasMoved) {
     return hasMoved ? piece | (1 << 4): piece;
 }
 
+
+//------------------------------------------------ method definitions ------------------------------------
+bool isKingInCheck(const int kingsPosition, uint8_t board[]);
+
+
+
+
+
 //--------------------------------------------- PIECE MOVEMENT -----------------------------------------------
 inline int getFileFromPosition(const int position){return position % file;}
 
@@ -64,18 +72,34 @@ bool checkWrap(const int currentPosition, const int nextPosition, const int maxD
     return abs(getFileFromPosition(currentPosition) - getFileFromPosition(nextPosition)) > maxDiff;
 }
 
-bool addMoveInVector(const int currentSquare, const int next_possible_square, vector<uint8_t> &possible_squares,uint8_t board[]) {
+
+bool addMoveInVector(const int currentSquare, const int next_possible_square, vector<uint8_t> &possible_squares,uint8_t board[], uint8_t KingsPosition) {
     //decode the next possible square piece if it is a king
     const bool isKing = decodePiece(board[next_possible_square]) == KING;
 
-    if (board[next_possible_square] == 0)
-        possible_squares.push_back(next_possible_square);
-    else {
+    //make the move temporarily and check if the king is still in check if so then invalid move dont add it
+    uint8_t currentSqaurePiece = board[currentSquare];
+    uint8_t nextSqaurePiece = board[next_possible_square];
+    board[currentSquare] = 0;
+    board[next_possible_square] = currentSquare;
+    bool isKingChecked = isKingInCheck(KingsPosition, board);
+
+    //undo the move
+    board[currentSquare] = currentSquare;
+    board[next_possible_square] = next_possible_square;
+
+    if (board[next_possible_square] == 0) {
+        if (!isKingChecked) {
+            possible_squares.push_back(next_possible_square);
+        }
+    }else {
         const int currentPieceColor = decodeColorPiece(board[currentSquare]);
         const int nextPositionPiece = decodeColorPiece(board[next_possible_square]);
         if (currentPieceColor != nextPositionPiece && !isKing) {
-            possible_squares.push_back(next_possible_square);
-            return false;
+            if (!isKingChecked) {
+                possible_squares.push_back(next_possible_square);
+                return true;
+            }
         }
         return false;
     }
@@ -88,60 +112,60 @@ bool addMoveInVector(const int currentSquare, const int next_possible_square, ve
 //the knight has 8 possible plays
 //1 file = 8
 //possible_moves = [+2 rank, -2 rank] [+1 file, -1 file]  or [1 rank, -1 rank] [+3 file, -3 file]
-vector<uint8_t> getAllPossibleKnightMoves(const int currentSquare, uint8_t board[]) {
+vector<uint8_t> getAllPossibleKnightMoves(const int currentSquare, uint8_t board[], uint8_t KingsPosition) {
     vector<uint8_t> possible_squares;
     //first two condition is for [+2 rank, -2 rank] [+1 file, -1 file]
     int next_possible_square = (currentSquare + (2 * Rank)) + 1;
 
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 1)) {
 
-        addMoveInVector(currentSquare, next_possible_square,possible_squares, board);
+        addMoveInVector(currentSquare, next_possible_square,possible_squares, board, KingsPosition);
     }
 
     next_possible_square = (currentSquare + (2 * Rank)) - 1;
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 1)) {
-        addMoveInVector(currentSquare, next_possible_square,possible_squares,board);
+        addMoveInVector(currentSquare, next_possible_square,possible_squares,board, KingsPosition);
     }
 
     //condition 2 [-2 Rank]
     next_possible_square = (currentSquare + (-2 * Rank)) + 1;
 
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 1)) {
-        addMoveInVector(currentSquare, next_possible_square,possible_squares, board);
+        addMoveInVector(currentSquare, next_possible_square,possible_squares, board, KingsPosition);
     }
 
     next_possible_square = (currentSquare + (-2 * Rank)) - 1;
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 1)) {
-        addMoveInVector(currentSquare, next_possible_square,possible_squares, board);
+        addMoveInVector(currentSquare, next_possible_square,possible_squares, board, KingsPosition);
     }
 
     //condition for [+1 Rank, -1 Rank] [+2 file, -2 file]
     next_possible_square = (currentSquare + (1 * Rank)) + 2;
 
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 2)) {
-        addMoveInVector(currentSquare, next_possible_square,possible_squares, board);
+        addMoveInVector(currentSquare, next_possible_square,possible_squares, board, KingsPosition);
     }
 
     next_possible_square = (currentSquare + (1 * Rank)) - 2;
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 2)) {
-        addMoveInVector(currentSquare, next_possible_square,possible_squares, board);
+        addMoveInVector(currentSquare, next_possible_square,possible_squares, board, KingsPosition);
     }
 
     //condition for [-1]
     next_possible_square = (currentSquare + (-1 * Rank)) + 2;
 
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 2)) {
-        addMoveInVector(currentSquare, next_possible_square,possible_squares, board);
+        addMoveInVector(currentSquare, next_possible_square,possible_squares, board, KingsPosition);
     }
 
     next_possible_square = (currentSquare + (-1 * Rank)) - 2 ;
     if (!(next_possible_square > 63 || next_possible_square < 0) && !checkWrap(currentSquare, next_possible_square, 2)) {
-        addMoveInVector(currentSquare, next_possible_square,possible_squares, board);
+        addMoveInVector(currentSquare, next_possible_square,possible_squares, board, KingsPosition);
     }
     return possible_squares;
 }
 
-vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board[]) {
+vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board[], uint8_t KingsPosition) {
     bool firstQuadrantComplete = false;
     bool SecondQuadrantComplete = false;
     bool ThirdQuadrantComplete = false;
@@ -162,7 +186,7 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
             int next_possible_square_first_quad = (firstQuadPrevSquare + (Nextrank * Rank)) + Nextfile;
 
             if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(firstQuadPrevSquare, next_possible_square_first_quad, 1)) {
-                bool addResult = addMoveInVector(currentSquare, next_possible_square_first_quad,possible_squares,board);
+                bool addResult = addMoveInVector(currentSquare, next_possible_square_first_quad,possible_squares,board, KingsPosition);
                 if (!addResult)
                     firstQuadrantComplete = true;
             }else {
@@ -176,7 +200,7 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
         if (!SecondQuadrantComplete) {
             int next_possible_square_Second_quad = (secondQuadPrevSquare + (Nextrank * Rank)) - Nextfile;
             if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(secondQuadPrevSquare, next_possible_square_Second_quad, 1)) {
-                bool addResult = addMoveInVector(currentSquare, next_possible_square_Second_quad,possible_squares,board);
+                bool addResult = addMoveInVector(currentSquare, next_possible_square_Second_quad,possible_squares,board, KingsPosition);
                 if (!addResult)
                     SecondQuadrantComplete = true;
             }else {
@@ -189,7 +213,7 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
         if (!ThirdQuadrantComplete) {
             int next_possible_square_third_quad = (thirdQuadPrevSquare + (-1 * Nextrank * Rank)) - Nextfile;
             if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(thirdQuadPrevSquare, next_possible_square_third_quad, 1)) {
-                bool addResult = addMoveInVector(thirdQuadPrevSquare, next_possible_square_third_quad,possible_squares,board);
+                bool addResult = addMoveInVector(thirdQuadPrevSquare, next_possible_square_third_quad,possible_squares,board,KingsPosition );
                 if (!addResult)
                     ThirdQuadrantComplete = true;
             }else {
@@ -203,7 +227,7 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
         if (!fourthQuadrantComplete) {
             int next_possible_square_fourth_quad = (fourthQuadPrevSquare + (-1 * Nextrank * Rank)) + Nextfile;
             if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(fourthQuadPrevSquare, next_possible_square_fourth_quad, 1)) {
-                bool addResult = addMoveInVector(fourthQuadPrevSquare, next_possible_square_fourth_quad,possible_squares,board);
+                bool addResult = addMoveInVector(fourthQuadPrevSquare, next_possible_square_fourth_quad,possible_squares,board, KingsPosition);
                 if (!addResult)
                     fourthQuadrantComplete = true;
             }else {
@@ -221,7 +245,7 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
 
 }
 
-vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]) {
+vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[], uint8_t KingsPosition) {
     vector<uint8_t> possible_squares;
     bool rightDirectionComplete = false;
     bool leftDirectionComplete = false;
@@ -234,7 +258,7 @@ vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]
         if (!rightDirectionComplete) {
             int next_square = currentSquare + (NextFile);
             if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile * 8)) {
-                bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board);
+                bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board, KingsPosition);
                 if (!addResult)
                     rightDirectionComplete = true;
             }else {
@@ -245,7 +269,7 @@ vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]
         if (!leftDirectionComplete) {
             int next_square = currentSquare + (-1 * NextFile);
             if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile % 8)) {
-                bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board);
+                bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board, KingsPosition);
                 if (!addResult)
                     leftDirectionComplete = true;
             }else {
@@ -256,7 +280,7 @@ vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]
         if (!upDirectionComplete) {
             int next_square = currentSquare + (NextRank * 8);
             if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 0 )) {
-                bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board);
+                bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board, KingsPosition);
                 if (!addResult)
                     upDirectionComplete = true;
             }else {
@@ -267,7 +291,7 @@ vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]
         if (!downDirectionComplete) {
             int next_square = currentSquare + (-1 * NextRank * 8);
             if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 0)) {
-                bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board);
+                bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board, KingsPosition);
                 if (!addResult)
                     downDirectionComplete = true;
             }else {
@@ -286,19 +310,19 @@ vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]
 
 }
 
-vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[], const int unpasentSquare) {
+vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[], const int unpasentSquare, uint8_t KingsPosition) {
     vector<uint8_t> possible_squares;
     const bool isMoved = hasMoved(board[currentSquare]);
     if (!isBlack(decodeColorPiece(board[currentSquare]))) {
         if (!isMoved) {
             const int next_square = currentSquare + (2 * Rank);
-            addMoveInVector(currentSquare, next_square,possible_squares,board);
+            addMoveInVector(currentSquare, next_square,possible_squares,board, KingsPosition);
         }
 
         int next_square = currentSquare + (1 * Rank) + 1;
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
-                addMoveInVector(currentSquare, next_square, possible_squares,board);
+                addMoveInVector(currentSquare, next_square, possible_squares,board, KingsPosition);
 
         }
         if (next_square == unpasentSquare)
@@ -307,7 +331,7 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[],
         next_square = currentSquare + (1 * Rank) - 1;
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
-                addMoveInVector(currentSquare, next_square, possible_squares,board);
+                addMoveInVector(currentSquare, next_square, possible_squares,board, KingsPosition);
 
         }
         if (next_square == unpasentSquare)
@@ -316,18 +340,18 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[],
         next_square = currentSquare + (1 * Rank);
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
             if (board[next_square] == 0)
-                addMoveInVector(currentSquare, next_square, possible_squares,board);
+                addMoveInVector(currentSquare, next_square, possible_squares,board, KingsPosition);
         }
     }else {
         if (!isMoved) {
             const int next_square = currentSquare + (-2 * Rank);
-            addMoveInVector(currentSquare, next_square,possible_squares,board);
+            addMoveInVector(currentSquare, next_square,possible_squares,board, KingsPosition);
         }
 
         int next_square = currentSquare + (-1 * Rank) + 1;
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
-                addMoveInVector(currentSquare, next_square, possible_squares,board);
+                addMoveInVector(currentSquare, next_square, possible_squares,board, KingsPosition);
         }
         if (next_square == unpasentSquare)
             possible_squares.push_back(next_square);
@@ -335,7 +359,7 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[],
         next_square = currentSquare + (-1 * Rank) - 1;
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
             if (decodeColorPiece(board[currentSquare]) != decodeColorPiece(board[next_square]))
-                addMoveInVector(currentSquare, next_square, possible_squares,board);
+                addMoveInVector(currentSquare, next_square, possible_squares,board, KingsPosition);
 
         }
         if (next_square == unpasentSquare)
@@ -344,15 +368,15 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[],
         next_square = currentSquare + (-1 * Rank);
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
             if (board[next_square] == 0)
-                addMoveInVector(currentSquare, next_square, possible_squares,board);
+                addMoveInVector(currentSquare, next_square, possible_squares,board, KingsPosition);
         }
     }
     return possible_squares;
 }
 
-vector<uint8_t> getAllPossibleQueenMoves(const int currentSquare, uint8_t board[]) {
-    vector<uint8_t> getAllRookMoves = getAllPossibleRookMoves(currentSquare,board);
-    vector<uint8_t> getAllBishopMoves = getAllPossibleBishopMoves(currentSquare,board);
+vector<uint8_t> getAllPossibleQueenMoves(const int currentSquare, uint8_t board[], uint8_t KingsPosition) {
+    vector<uint8_t> getAllRookMoves = getAllPossibleRookMoves(currentSquare,board, KingsPosition);
+    vector<uint8_t> getAllBishopMoves = getAllPossibleBishopMoves(currentSquare,board, KingsPosition);
     for (const uint8_t bishopMoves: getAllBishopMoves)
         getAllRookMoves.push_back(bishopMoves);
 
@@ -627,42 +651,42 @@ vector<uint8_t> getAllPossibleKingMoves(const int currentSquare, uint8_t board[]
     vector<uint8_t> possible_squares;
     int next_square = currentSquare + 1;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-       addMoveInVector(currentSquare, next_square,possible_squares,board);
+       addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = currentSquare - 1;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board);
+        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = currentSquare + Rank;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board);
+        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = currentSquare - Rank;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board);
+        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square =  (currentSquare + 1) + Rank;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board);
+        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = (currentSquare -  1)+ Rank;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board);
+        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = (currentSquare + 1) - Rank;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board);
+        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = (currentSquare - 1 ) - Rank;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board);
+        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     if (isKingSideCastingPossible(currentSquare, board) && !kingInCheck) {
@@ -789,6 +813,59 @@ void printBoard(uint8_t board[])
     }
 }
 
+//TODO: change the checking when the posible moves chnages from vector to bitboard
+bool checkCheckMate(uint64_t currentPieceBoard, GameState currentState) {
+
+    if (!currentState.kingInCheck)
+        return false;
+
+    /*
+     * Step 1: get the most right most signifcat bit get that piece movies
+     * step 2: if any piece has a available its not check mate else it check mate if the king is already in check
+     */
+    uint8_t kingsPosition = currentState.colorsTurn == 0 ? currentState.whiteKingsCurrentSquare : currentState.blackKingsCurrentSquare;
+    while (currentPieceBoard > 0) {
+        int mostSignficantBit = __builtin_ctzll(currentPieceBoard);
+
+        switch (decodePiece(currentState.board[mostSignficantBit]) ) {
+            case KNIGHT:
+                if (!getAllPossibleKnightMoves(mostSignficantBit, currentState.board, kingsPosition).empty()) return false;
+                break;
+            case BISHOP:
+                if (!getAllPossibleBishopMoves(mostSignficantBit, currentState.board, kingsPosition).empty()) return false;;
+                break;
+            case ROOK:
+                if (!getAllPossibleRookMoves(mostSignficantBit, currentState.board, kingsPosition).empty()) return false;
+                break;
+            case PAWN:
+                if (!getAllPossiblePawnMoves(mostSignficantBit, currentState.board,currentState.unpasentSquare, kingsPosition).empty()) return false;
+                break;
+            case QUEEN:
+                if (!getAllPossibleQueenMoves(mostSignficantBit, currentState.board, kingsPosition).empty()) return false;
+                break;
+            case KING: if (!getAllPossibleKingMoves(mostSignficantBit, currentState.board, currentState.kingInCheck).empty()) return false;
+                break;
+        }
+
+        //change the right most significate bit to 0
+        if (mostSignficantBit == 63)
+            currentPieceBoard = 0;
+        else {
+            currentPieceBoard = currentPieceBoard >> (1ULL << (mostSignficantBit + 1));
+            currentPieceBoard = currentPieceBoard << (1ULL << (mostSignficantBit + 1));
+        }
+    }
+
+    return true;
+}
+
+bool checkStaleMate(uint64_t currentPieceBoard, GameState currentState) {
+    if (checkCheckMate(currentPieceBoard, currentState)) {
+        return false;
+    }
+    return true;
+}
+
 /*
  * important: when moving piece update piece bitbord to indicate its new position the bitboard that
  *            holds eg while player pieces/ black piece
@@ -871,8 +948,13 @@ GameState movePiece(const int from, const int to, GameState currentState) {
     currentState.board[to] = setHasMoved(currentState.board[from]);
     currentState.board[from] = EMPTY;
     if (currentState.colorsTurn == 1) {
+
         if (decodePiece(currentState.board[to]) == KING)
             currentState.blackKingsCurrentSquare = to;
+
+        //update kingIsCheck flag
+        currentState.kingInCheck = isKingInCheck(currentState.whiteKingsCurrentSquare, currentState.board);
+
         currentState.colorsTurn = 0;
 
         //update black pieces bitboard
@@ -883,12 +965,17 @@ GameState movePiece(const int from, const int to, GameState currentState) {
         if (decodePiece(currentState.board[to]) == KING)
             currentState.whiteKingsCurrentSquare = to;
 
+        //update kingIsCheck flag
+        currentState.kingInCheck = isKingInCheck(currentState.blackKingsCurrentSquare, currentState.board);
+
         currentState.colorsTurn = 1;
 
         //update black pieces bitboard
         currentState.whitePieces = currentState.whitePieces ^ (1ULL << from);
         currentState.whitePieces = currentState.whitePieces | (1ULL << to);
     }
+
+
 
     return currentState;
 }
@@ -908,13 +995,13 @@ bool isValidMove(const int from, const int to,GameState currentState) {
 
     const uint8_t pieceType = decodePiece(currentState.board[from]);
     vector<uint8_t> possibleMoves;
-
+    uint8_t kingsPosition = currentState.colorsTurn == 0 ? currentState.whiteKingsCurrentSquare : currentState.blackKingsCurrentSquare;
     switch (pieceType) {
-        case KNIGHT: possibleMoves = getAllPossibleKnightMoves(from, currentState.board); break;
-        case BISHOP: possibleMoves = getAllPossibleBishopMoves(from, currentState.board); break;
-        case ROOK: possibleMoves = getAllPossibleRookMoves(from, currentState.board); break;
-        case PAWN: possibleMoves = getAllPossiblePawnMoves(from, currentState.board,currentState.unpasentSquare); break;
-        case QUEEN: possibleMoves = getAllPossibleQueenMoves(from, currentState.board); break;
+        case KNIGHT: possibleMoves = getAllPossibleKnightMoves(from, currentState.board, kingsPosition); break;
+        case BISHOP: possibleMoves = getAllPossibleBishopMoves(from, currentState.board, kingsPosition); break;
+        case ROOK: possibleMoves = getAllPossibleRookMoves(from, currentState.board, kingsPosition); break;
+        case PAWN: possibleMoves = getAllPossiblePawnMoves(from, currentState.board,currentState.unpasentSquare, kingsPosition); break;
+        case QUEEN: possibleMoves = getAllPossibleQueenMoves(from, currentState.board, kingsPosition); break;
         case KING: possibleMoves =  getAllPossibleKingMoves(from, currentState.board, currentState.kingInCheck); break;
         default:
             cout << "Move generation not implemented for this piece yet.\n";
@@ -941,7 +1028,6 @@ bool isValidMove(const int from, const int to,GameState currentState) {
         }
 
         if (tempState.kingInCheck) {
-            cout<<"King is check invalid move \n";
             movePossible = false;
         }
         else
@@ -1012,9 +1098,7 @@ void gameLoop(const GameState startState) {
             continue;
         }
 
-        if (state.kingInCheck) {
-            cout << "King in check. \n";
-        }
+
 
         if (!isValidMove(from, to,state)) {
             cout << "Illegal move.\n";
@@ -1054,9 +1138,26 @@ void gameLoop(const GameState startState) {
             }
         }
 
+
         state = movePiece(from, to,state);
+
         if (promotion) {
             state.board[to] = promotionPiece;
+        }
+
+        //check chekmate
+        if (state.kingInCheck) {
+
+            uint64_t currentPiece = state.colorsTurn == 0 ? state.whitePieces : state.blackPieces;
+            if (checkCheckMate(currentPiece, state)) {
+                cout<< "check mate!! "<<(state.colorsTurn == 0 ? "black won \n": "white won \n");
+                break;
+            }
+
+            if (checkStaleMate(currentPiece, state)) {
+                cout<< "stale mate!! "<<(state.colorsTurn == 0 ? "black won \n": "white won \n");
+                break;
+            }
         }
     }
 }
