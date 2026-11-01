@@ -69,7 +69,7 @@ bool isKingInCheck(const int kingsPosition, uint8_t board[]);
 inline int getFileFromPosition(const int position){return position % file;}
 
 bool checkWrap(const int currentPosition, const int nextPosition, const int maxDiff) {
-    return abs(getFileFromPosition(currentPosition) - getFileFromPosition(nextPosition)) > maxDiff;
+    return abs(getFileFromPosition(currentPosition) - getFileFromPosition(nextPosition)) >= maxDiff;
 }
 
 
@@ -338,7 +338,7 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[],
     vector<uint8_t> possible_squares;
     const bool isMoved = hasMoved(board[currentSquare]);
     if (!isBlack(decodeColorPiece(board[currentSquare]))) {
-        if (!isMoved) {
+        if (!isMoved && board[currentSquare + 1 ] == EMPTY) {
             const int next_square = currentSquare + (2 * Rank);
             addMoveInVector(currentSquare, next_square,possible_squares,board, KingsPosition);
         }
@@ -367,7 +367,7 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[],
                 addMoveInVector(currentSquare, next_square, possible_squares,board, KingsPosition);
         }
     }else {
-        if (!isMoved) {
+        if (!isMoved && board[currentSquare - 1 ] == EMPTY) {
             const int next_square = currentSquare + (-2 * Rank);
             addMoveInVector(currentSquare, next_square,possible_squares,board, KingsPosition);
         }
@@ -487,7 +487,7 @@ bool checkBishopPawnAndQueenCastingRays(const int kingsPosition, uint8_t board[]
             if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(firstQuadPrevSquare, next_possible_square_first_quad, 1)) {
                 if ((decodePiece(board[next_possible_square_first_quad]) == BISHOP || decodePiece(board[next_possible_square_first_quad]) ==  QUEEN) && decodeColorPiece(board[next_possible_square_first_quad]) != decodeColorPiece(board[kingsPosition]))
                     return true;
-                if ((decodePiece(board[next_possible_square_first_quad]) == PAWN && decodeColorPiece(board[next_possible_square_first_quad])) != decodeColorPiece(board[kingsPosition]) && !checkWrap(kingsPosition, next_possible_square_first_quad, 1) )
+                if ((decodePiece(board[next_possible_square_first_quad]) == PAWN  && decodeColorPiece(board[next_possible_square_first_quad]) != decodeColorPiece(board[kingsPosition])) && !checkWrap(kingsPosition, next_possible_square_first_quad, 1) )
                     return true;
                 if (board[next_possible_square_first_quad] != EMPTY)
                     firstQuadrantComplete = true;
@@ -646,7 +646,7 @@ bool isKingSideCastingPossible(const int currentSquare, uint8_t board[]) {
         return false;
 
     for (int i = 1; i < 3; i++)
-        if (board[currentSquare + i] != EMPTY || isKingInCheck(currentSquare-i, board))
+        if (board[currentSquare + i] != EMPTY || isKingInCheck(currentSquare + i, board))
             return false;
     if (hasMoved(board[currentSquare + 3]))
         return false;
@@ -663,7 +663,7 @@ bool isQueenSideCastingPossible(const int currentSquare, uint8_t board[]) {
         return false;
 
     for (int i = 1; i < 4; i++)
-        if (board[currentSquare + i] != EMPTY || isKingInCheck(currentSquare+i, board))
+        if (board[currentSquare - i] != EMPTY || isKingInCheck(currentSquare - i, board))
             return false;
     if (hasMoved(board[currentSquare - 4]))
         return false;
@@ -684,49 +684,49 @@ vector<uint8_t> getAllPossibleKingMoves(const int currentSquare, uint8_t board[]
     next_square = currentSquare - 1;
     oppKingSquare = currentSquare - 2;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        if(decodePiece(board[oppKingSquare]) != KING)
+        if(!(oppKingSquare > 63 || oppKingSquare < 0) && decodePiece(board[oppKingSquare]) != KING)
             addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = currentSquare + Rank;
     oppKingSquare = currentSquare + (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        if(decodePiece(board[oppKingSquare]) != KING)
+        if(!(oppKingSquare > 63 || oppKingSquare < 0) && decodePiece(board[oppKingSquare]) != KING)
             addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = currentSquare - Rank;
     oppKingSquare = currentSquare - (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        if(decodePiece(board[oppKingSquare]) != KING)
+        if(!(oppKingSquare > 63 || oppKingSquare < 0) && decodePiece(board[oppKingSquare]) != KING)
             addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square =  (currentSquare + 1) + Rank;
     oppKingSquare = (currentSquare + 2) + (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        if(decodePiece(board[oppKingSquare]) != KING)
+        if(!(oppKingSquare > 63 || oppKingSquare < 0) && decodePiece(board[oppKingSquare]) != KING)
             addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = (currentSquare -  1)+ Rank;
     oppKingSquare = (currentSquare - 2) + (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        if(decodePiece(board[oppKingSquare]) != KING)
+        if(!(oppKingSquare > 63 || oppKingSquare < 0) && decodePiece(board[oppKingSquare]) != KING)
             addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = (currentSquare + 1) - Rank;
     oppKingSquare = (currentSquare + 2) - (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        if(decodePiece(board[oppKingSquare]) != KING)
+        if(!(oppKingSquare > 63 || oppKingSquare < 0) && decodePiece(board[oppKingSquare]) != KING)
             addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = (currentSquare - 1 ) - Rank;
     oppKingSquare = (currentSquare - 2) - (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        if(decodePiece(board[oppKingSquare]) != KING)
+        if(!(oppKingSquare > 63 || oppKingSquare < 0) && decodePiece(board[oppKingSquare]) != KING)
             addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
@@ -903,14 +903,70 @@ bool checkStaleMate(uint64_t currentPieceBoard,uint8_t kingsPosition, GameState 
     if (checkCheckMate(currentPieceBoard,kingsPosition, currentState)) {
         return false;
     }
-    return true;
+
+    while (currentPieceBoard > 0) {
+        int mostSignficantBit = __builtin_ctzll(currentPieceBoard);
+
+        switch (decodePiece(currentState.board[mostSignficantBit])) {
+            case KNIGHT:
+                if (!getAllPossibleKnightMoves(mostSignficantBit, currentState.board, kingsPosition).empty())
+                    return false;
+                break;
+            case BISHOP:
+                if (!getAllPossibleBishopMoves(mostSignficantBit, currentState.board, kingsPosition).empty())
+                    return false;;
+                break;
+            case ROOK:
+                if (!getAllPossibleRookMoves(mostSignficantBit, currentState.board, kingsPosition).empty())
+                    return false;
+                break;
+            case PAWN:
+                if (!getAllPossiblePawnMoves(mostSignficantBit, currentState.board, currentState.unpasentSquare,
+                                             kingsPosition).empty())
+                    return false;
+                break;
+            case QUEEN:
+                if (!getAllPossibleQueenMoves(mostSignficantBit, currentState.board, kingsPosition).empty())
+                    return false;
+                break;
+            case KING:
+                if (!getAllPossibleKingMoves(mostSignficantBit, currentState.board,
+                                             currentState.kingInCheck).empty())
+                    return false;
+                break;
+        }
+
+        //change the right most significate bit to 0
+        if (mostSignficantBit == 63)
+            currentPieceBoard = 0;
+        else {
+            currentPieceBoard = currentPieceBoard >> (mostSignficantBit + 1);
+            currentPieceBoard = currentPieceBoard << (mostSignficantBit + 1);
+        }
+    }
+    if(!currentState.kingInCheck)
+        return true;
+    else
+        return false;
+
+}
+
+/*
+ * TODO: FINISH this method
+ * check is only remaining pieces are:
+ * king + knight
+ * king + 2 knight
+ * king + 1 bishop
+ * king + 2 bishop in the same color
+ */
+bool checkInsufficientMaterialStaleMate(uint64_t currentPieceBoard,uint8_t kingsPosition, GameState currentState){
+    return false;
 }
 
 /*
  * important: when moving piece update piece bitbord to indicate its new position the bitboard that
  *            holds eg while player pieces/ black piece
  */
-
 GameState movePiece(const int from, const int to, GameState currentState) {
 
     // Store the moving piece before modifying the board
@@ -1255,15 +1311,16 @@ void gameLoop(const GameState startState) {
         }
 
         //check chekmate
+        uint64_t currentPiece = state.colorsTurn == 0 ? state.whitePieces: state.blackPieces;
+        uint8_t kingsPosition = state.colorsTurn == 0 ? state.whiteKingsCurrentSquare : state.blackKingsCurrentSquare;
         if (state.kingInCheck) {
 
-            uint64_t currentPiece = state.colorsTurn == 0 ? state.whitePieces: state.blackPieces;
-            uint8_t kingsPosition = state.colorsTurn == 0 ? state.whiteKingsCurrentSquare : state.blackKingsCurrentSquare;
             if (checkCheckMate(currentPiece,kingsPosition, state)) {
                 cout<< "check mate!! "<<(state.colorsTurn == 0 ? "black won \n": "white won \n");
                 break;
             }
 
+        }else{
             if (checkStaleMate(currentPiece,kingsPosition, state)) {
                 cout<< "stale mate!! ";
                 break;
