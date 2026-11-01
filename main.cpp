@@ -74,37 +74,45 @@ bool checkWrap(const int currentPosition, const int nextPosition, const int maxD
 
 
 bool addMoveInVector(const int currentSquare, const int next_possible_square, vector<uint8_t> &possible_squares,uint8_t board[], uint8_t KingsPosition) {
-    //decode the next possible square piece if it is a king
-    const bool isKing = decodePiece(board[next_possible_square]) == KING;
 
-    //make the move temporarily and check if the king is still in check if so then invalid move dont add it
-    uint8_t currentSqaurePiece = board[currentSquare];
-    uint8_t nextSqaurePiece = board[next_possible_square];
-    board[currentSquare] = 0;
-    board[next_possible_square] = currentSquare;
-    bool isKingChecked = isKingInCheck(KingsPosition, board);
+        uint8_t movingPiece = board[currentSquare];
+        uint8_t targetPiece = board[next_possible_square];
 
-    //undo the move
-    board[currentSquare] = currentSquare;
-    board[next_possible_square] = next_possible_square;
+        bool isKing = decodePiece(movingPiece) == KING;
 
-    if (board[next_possible_square] == 0) {
+        // Cannot capture your own piece
+        if (targetPiece != EMPTY &&
+            decodeColorPiece(movingPiece) == decodeColorPiece(targetPiece)) {
+            return false;
+            }
+
+        // Kings are never captured in chess
+        if (decodePiece(targetPiece) == KING) {
+            return false;
+        }
+
+        // Temporarily make the move
+        board[currentSquare] = EMPTY;
+        board[next_possible_square] = movingPiece;
+
+        if (isKing) {
+            KingsPosition = next_possible_square;
+        }
+
+        bool isKingChecked = isKingInCheck(KingsPosition, board);
+
+        // Restore board
+        board[currentSquare] = movingPiece;
+        board[next_possible_square] = targetPiece;
+
         if (!isKingChecked) {
             possible_squares.push_back(next_possible_square);
         }
-    }else {
-        const int currentPieceColor = decodeColorPiece(board[currentSquare]);
-        const int nextPositionPiece = decodeColorPiece(board[next_possible_square]);
-        if (currentPieceColor != nextPositionPiece && !isKing) {
-            if (!isKingChecked) {
-                possible_squares.push_back(next_possible_square);
-                return true;
-            }
-        }
-        return false;
-    }
 
-    return true;
+        // An occupied square always blocks a sliding ray,
+        // regardless of whether the piece could be captured.
+        return targetPiece == EMPTY;
+
 }
 
 
@@ -213,7 +221,14 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
         if (!ThirdQuadrantComplete) {
             int next_possible_square_third_quad = (thirdQuadPrevSquare + (-1 * Nextrank * Rank)) - Nextfile;
             if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(thirdQuadPrevSquare, next_possible_square_third_quad, 1)) {
-                bool addResult = addMoveInVector(thirdQuadPrevSquare, next_possible_square_third_quad,possible_squares,board,KingsPosition );
+                // Third direction
+                bool addResult = addMoveInVector(
+                    currentSquare,
+                    next_possible_square_third_quad,
+                    possible_squares,
+                    board,
+                    KingsPosition
+                );
                 if (!addResult)
                     ThirdQuadrantComplete = true;
             }else {
@@ -227,7 +242,14 @@ vector<uint8_t> getAllPossibleBishopMoves(const int currentSquare, uint8_t board
         if (!fourthQuadrantComplete) {
             int next_possible_square_fourth_quad = (fourthQuadPrevSquare + (-1 * Nextrank * Rank)) + Nextfile;
             if (!(next_possible_square_fourth_quad > 63 || next_possible_square_fourth_quad < 0) && !checkWrap(fourthQuadPrevSquare, next_possible_square_fourth_quad, 1)) {
-                bool addResult = addMoveInVector(fourthQuadPrevSquare, next_possible_square_fourth_quad,possible_squares,board, KingsPosition);
+                // Fourth direction
+                bool addResult = addMoveInVector(
+                    currentSquare,
+                    next_possible_square_fourth_quad,
+                    possible_squares,
+                    board,
+                    KingsPosition
+                );
                 if (!addResult)
                     fourthQuadrantComplete = true;
             }else {
@@ -254,10 +276,12 @@ vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]
 
     int NextFile = 1;
     int NextRank = 1;
+
     while (true) {
         if (!rightDirectionComplete) {
             int next_square = currentSquare + (NextFile);
-            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile * 8)) {
+
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile % 8)) {
                 bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board, KingsPosition);
                 if (!addResult)
                     rightDirectionComplete = true;
@@ -268,7 +292,7 @@ vector<uint8_t> getAllPossibleRookMoves(const int currentSquare, uint8_t board[]
 
         if (!leftDirectionComplete) {
             int next_square = currentSquare + (-1 * NextFile);
-            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile % 8)) {
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, NextFile %8)) {
                 bool addResult = addMoveInVector(currentSquare, next_square,possible_squares,board, KingsPosition);
                 if (!addResult)
                     leftDirectionComplete = true;
@@ -326,7 +350,7 @@ vector<uint8_t> getAllPossiblePawnMoves(const int currentSquare,uint8_t board[],
 
         }
         if (next_square == unpasentSquare)
-            possible_squares.push_back(next_square);
+            addMoveInVector(currentSquare,next_square,possible_squares,board, KingsPosition);
 
         next_square = currentSquare + (1 * Rank) - 1;
         if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1) && board[next_square] != 0) {
@@ -383,6 +407,7 @@ vector<uint8_t> getAllPossibleQueenMoves(const int currentSquare, uint8_t board[
     return getAllRookMoves;
 
 }
+
 
 bool checkKnightCastingRays(const int kingsPosition, uint8_t board[]) {
     //first two condition is for [+2 rank, -2 rank] [+1 file, -1 file]
@@ -460,9 +485,9 @@ bool checkBishopPawnAndQueenCastingRays(const int kingsPosition, uint8_t board[]
         if (!firstQuadrantComplete) {
             int next_possible_square_first_quad = (firstQuadPrevSquare + (Nextrank * Rank)) + Nextfile;
             if (!(next_possible_square_first_quad > 63 || next_possible_square_first_quad < 0) && !checkWrap(firstQuadPrevSquare, next_possible_square_first_quad, 1)) {
-                if (decodePiece(board[next_possible_square_first_quad]) == BISHOP || decodePiece(board[next_possible_square_first_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_first_quad]) != decodeColorPiece(board[kingsPosition]))
+                if ((decodePiece(board[next_possible_square_first_quad]) == BISHOP || decodePiece(board[next_possible_square_first_quad]) ==  QUEEN) && decodeColorPiece(board[next_possible_square_first_quad]) != decodeColorPiece(board[kingsPosition]))
                     return true;
-                if (decodePiece(board[next_possible_square_first_quad]) == PAWN && decodeColorPiece(board[next_possible_square_first_quad]) != decodeColorPiece(board[kingsPosition]) && !checkWrap(kingsPosition, next_possible_square_first_quad, 1) )
+                if ((decodePiece(board[next_possible_square_first_quad]) == PAWN && decodeColorPiece(board[next_possible_square_first_quad])) != decodeColorPiece(board[kingsPosition]) && !checkWrap(kingsPosition, next_possible_square_first_quad, 1) )
                     return true;
                 if (board[next_possible_square_first_quad] != EMPTY)
                     firstQuadrantComplete = true;
@@ -477,9 +502,9 @@ bool checkBishopPawnAndQueenCastingRays(const int kingsPosition, uint8_t board[]
         if (!SecondQuadrantComplete) {
             int next_possible_square_Second_quad = (secondQuadPrevSquare + (Nextrank * Rank)) - Nextfile;
             if (!(next_possible_square_Second_quad > 63 || next_possible_square_Second_quad < 0) && !checkWrap(secondQuadPrevSquare, next_possible_square_Second_quad, 1)) {
-                if (decodePiece(board[next_possible_square_Second_quad]) == BISHOP || decodePiece(board[next_possible_square_Second_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_Second_quad]) != decodeColorPiece(board[kingsPosition]))
+                if ((decodePiece(board[next_possible_square_Second_quad]) == BISHOP || decodePiece(board[next_possible_square_Second_quad]) ==  QUEEN) && decodeColorPiece(board[next_possible_square_Second_quad]) != decodeColorPiece(board[kingsPosition]))
                     return true;
-                if (decodePiece(board[next_possible_square_Second_quad]) == PAWN && decodeColorPiece(board[next_possible_square_Second_quad]) != decodeColorPiece(board[kingsPosition]) && !checkWrap(kingsPosition, next_possible_square_Second_quad, 1) )
+                if ((decodePiece(board[next_possible_square_Second_quad]) == PAWN ) && decodeColorPiece(board[next_possible_square_Second_quad]) != decodeColorPiece(board[kingsPosition]) && !checkWrap(kingsPosition, next_possible_square_Second_quad, 1) )
                     return true;
                 if (board[next_possible_square_Second_quad] != EMPTY)
                     SecondQuadrantComplete = true;
@@ -493,7 +518,7 @@ bool checkBishopPawnAndQueenCastingRays(const int kingsPosition, uint8_t board[]
         if (!ThirdQuadrantComplete) {
             int next_possible_square_third_quad = (thirdQuadPrevSquare + (-1 * Nextrank * Rank)) - Nextfile;
             if (!(next_possible_square_third_quad > 63 || next_possible_square_third_quad < 0) && !checkWrap(thirdQuadPrevSquare, next_possible_square_third_quad, 1)) {
-                if (decodePiece(board[next_possible_square_third_quad]) == BISHOP || decodePiece(board[next_possible_square_third_quad]) ==  QUEEN && decodeColorPiece(board[next_possible_square_third_quad]) != decodeColorPiece(board[kingsPosition]))
+                if ((decodePiece(board[next_possible_square_third_quad]) == BISHOP || decodePiece(board[next_possible_square_third_quad]) ==  QUEEN) && decodeColorPiece(board[next_possible_square_third_quad]) != decodeColorPiece(board[kingsPosition]))
                     return true;
 
                 if (decodePiece(board[next_possible_square_third_quad]) == PAWN && decodeColorPiece(board[next_possible_square_third_quad]) != decodeColorPiece(board[kingsPosition]) && !checkWrap(kingsPosition, next_possible_square_third_quad, 1) )
@@ -542,7 +567,7 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
     while (true) {
         if (!rightDirectionComplete) {
             int next_square = kingPosition + (NextFile);
-            if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, 8)) {
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, NextFile% 8)) {
                 if ( (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN) && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
                     return true;
                 if (board[next_square] != EMPTY)
@@ -554,7 +579,7 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
 
         if (!leftDirectionComplete) {
             int next_square = kingPosition + (-1 * NextFile);
-            if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, 8)) {
+            if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, NextFile% 8)) {
                 if ( (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN  )&& decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
                     return true;
                 if (board[next_square] != EMPTY)
@@ -567,7 +592,7 @@ bool checkRookAndQueenCastingRays(const int kingPosition, uint8_t board[]) {
         if (!upDirectionComplete) {
             int next_square = kingPosition + (NextRank * 8);
             if (!(next_square > 63 || next_square < 0) && !checkWrap(kingPosition, next_square, 0)) {
-                if (decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN && decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
+                if ((decodePiece(board[next_square]) == ROOK || decodePiece(board[next_square]) ==  QUEEN )&& decodeColorPiece(board[next_square]) != decodeColorPiece(board[kingPosition]))
                     return true;
                 if (board[next_square] != EMPTY)
                     upDirectionComplete = true;
@@ -650,43 +675,59 @@ bool isQueenSideCastingPossible(const int currentSquare, uint8_t board[]) {
 vector<uint8_t> getAllPossibleKingMoves(const int currentSquare, uint8_t board[], const bool kingInCheck) {
     vector<uint8_t> possible_squares;
     int next_square = currentSquare + 1;
+    int oppKingSquare = currentSquare + 2;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-       addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
+        if(decodePiece(board[oppKingSquare]) != KING)
+            addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = currentSquare - 1;
+    oppKingSquare = currentSquare - 2;
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
+        if(decodePiece(board[oppKingSquare]) != KING)
+            addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = currentSquare + Rank;
+    oppKingSquare = currentSquare + (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
+        if(decodePiece(board[oppKingSquare]) != KING)
+            addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = currentSquare - Rank;
+    oppKingSquare = currentSquare - (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
+        if(decodePiece(board[oppKingSquare]) != KING)
+            addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square =  (currentSquare + 1) + Rank;
+    oppKingSquare = (currentSquare + 2) + (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
+        if(decodePiece(board[oppKingSquare]) != KING)
+            addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = (currentSquare -  1)+ Rank;
+    oppKingSquare = (currentSquare - 2) + (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
+        if(decodePiece(board[oppKingSquare]) != KING)
+            addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = (currentSquare + 1) - Rank;
+    oppKingSquare = (currentSquare + 2) - (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
+        if(decodePiece(board[oppKingSquare]) != KING)
+            addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     next_square = (currentSquare - 1 ) - Rank;
+    oppKingSquare = (currentSquare - 2) - (2*Rank);
     if (!(next_square > 63 || next_square < 0) && !checkWrap(currentSquare, next_square, 1)) {
-        addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
+        if(decodePiece(board[oppKingSquare]) != KING)
+            addMoveInVector(currentSquare, next_square,possible_squares,board, currentSquare);
     }
 
     if (isKingSideCastingPossible(currentSquare, board) && !kingInCheck) {
@@ -751,7 +792,7 @@ GameState resetBoard(GameState currentSate) {
         currentSate.board[i] = createPiece(PAWN, false,false);
 
     //set the first 16 pits to 1 to for white pieces
-    currentSate.whitePieces = currentSate.whitePieces | ((1ULL < 16) - 1);
+    currentSate.whitePieces = currentSate.whitePieces | ((1ULL << 16) - 1);
 
     // black pieces
     currentSate.board[56] = createPiece(ROOK, true, false);
@@ -814,7 +855,7 @@ void printBoard(uint8_t board[])
 }
 
 //TODO: change the checking when the posible moves chnages from vector to bitboard
-bool checkCheckMate(uint64_t currentPieceBoard, GameState currentState) {
+bool checkCheckMate(uint64_t currentPieceBoard,uint8_t kingsPosition, GameState currentState) {
 
     if (!currentState.kingInCheck)
         return false;
@@ -823,7 +864,6 @@ bool checkCheckMate(uint64_t currentPieceBoard, GameState currentState) {
      * Step 1: get the most right most signifcat bit get that piece movies
      * step 2: if any piece has a available its not check mate else it check mate if the king is already in check
      */
-    uint8_t kingsPosition = currentState.colorsTurn == 0 ? currentState.whiteKingsCurrentSquare : currentState.blackKingsCurrentSquare;
     while (currentPieceBoard > 0) {
         int mostSignficantBit = __builtin_ctzll(currentPieceBoard);
 
@@ -851,16 +891,16 @@ bool checkCheckMate(uint64_t currentPieceBoard, GameState currentState) {
         if (mostSignficantBit == 63)
             currentPieceBoard = 0;
         else {
-            currentPieceBoard = currentPieceBoard >> (1ULL << (mostSignficantBit + 1));
-            currentPieceBoard = currentPieceBoard << (1ULL << (mostSignficantBit + 1));
+            currentPieceBoard = currentPieceBoard >> (mostSignficantBit + 1);
+            currentPieceBoard = currentPieceBoard << (mostSignficantBit + 1);
         }
     }
 
     return true;
 }
 
-bool checkStaleMate(uint64_t currentPieceBoard, GameState currentState) {
-    if (checkCheckMate(currentPieceBoard, currentState)) {
+bool checkStaleMate(uint64_t currentPieceBoard,uint8_t kingsPosition, GameState currentState) {
+    if (checkCheckMate(currentPieceBoard,kingsPosition, currentState)) {
         return false;
     }
     return true;
@@ -870,115 +910,184 @@ bool checkStaleMate(uint64_t currentPieceBoard, GameState currentState) {
  * important: when moving piece update piece bitbord to indicate its new position the bitboard that
  *            holds eg while player pieces/ black piece
  */
+
 GameState movePiece(const int from, const int to, GameState currentState) {
 
-    //capture en peasant squares
+    // Store the moving piece before modifying the board
+    const int movingPiece = currentState.board[from];
+
+    const bool isWhite = currentState.colorsTurn == 0;
+
+    // --------------------------------------------------
+    // 1. HANDLE NORMAL CAPTURES
+    // --------------------------------------------------
+
+    if (currentState.board[to] != EMPTY) {
+
+        if (isWhite) {
+            // White captures a black piece
+            currentState.blackPieces &= ~(1ULL << to);
+        } else {
+            // Black captures a white piece
+            currentState.whitePieces &= ~(1ULL << to);
+        }
+    }
+
+    // --------------------------------------------------
+    // 2. HANDLE EN PASSANT
+    // --------------------------------------------------
+
     if (to == currentState.unpasentSquare) {
-        //check which color is making the move
-        if (currentState.colorsTurn == 1) {
-            int const currentPawnSquare = to + 8;
-            currentState.board[currentPawnSquare] = EMPTY;
 
-            //update player one piece in pieces bitboard
-            /*
-             * Step 1: turn the old sqaure bit into 0 to indicate its no piece exist there
-             * Step 2: turn the new sqaure bit into1 to indicate where the piece is at now
-             */
-            currentState.blackPieces = currentState.blackPieces ^ (1ULL << currentState.unpasentSquare);
-            currentState.blackPieces = currentState.blackPieces | (1ULL << currentState.unpasentSquare);
-        }else {
-            int const currentPawnSquare = to - 8;
-            currentState.board[currentPawnSquare] = EMPTY;
-            //update player one piece in pieces bitboard
-            /*
-             * Step 1: turn the old sqaure bit into 0 to indicate its no piece exist there
-             * Step 2: turn the new sqaure bit into1 to indicate where the piece is at now
-             */
-            currentState.whitePieces = currentState.whitePieces ^ (1ULL << currentState.unpasentSquare);
-            currentState.whitePieces = currentState.whitePieces | (1ULL << currentState.unpasentSquare);
+        if (isWhite) {
+
+            // White captures black pawn
+            const int capturedPawnSquare = to - 8;
+
+            currentState.board[capturedPawnSquare] = EMPTY;
+
+            currentState.blackPieces &=
+                ~(1ULL << capturedPawnSquare);
+
+        } else {
+
+            // Black captures white pawn
+            const int capturedPawnSquare = to + 8;
+
+            currentState.board[capturedPawnSquare] = EMPTY;
+
+            currentState.whitePieces &=
+                ~(1ULL << capturedPawnSquare);
         }
     }
 
-    //do castling
-    if (decodePiece(currentState.board[from]) == KING && ( abs(from - to) == 2)) {
-        //move the rook coz the king will be moved when moving of pieces is moved
-        if (currentState.colorsTurn == 0) {
+    // --------------------------------------------------
+    // 3. HANDLE CASTLING
+    // --------------------------------------------------
+
+    if (decodePiece(movingPiece) == KING &&
+        abs(from - to) == 2) {
+
+        int rookFrom;
+        int rookTo;
+
+        if (isWhite) {
+
             if (from < to) {
-                //king side castling for white pieces
-                currentState.board[from + 1] = setHasMoved(currentState.board[7]);
-                currentState.board[7] = EMPTY;
-
-                //update the rooks position the blacks piece bitbord
-                currentState.whitePieces = currentState.whitePieces ^ (1ULL << 7);
-                currentState.whitePieces = currentState.whitePieces | (1ULL << (from + 1));
-            }else {
-                currentState.board[from - 1] = setHasMoved(currentState.board[0]);
-                currentState.board[0] = EMPTY;
-
-                currentState.whitePieces = currentState.whitePieces ^ (1ULL);
-                currentState.whitePieces = currentState.whitePieces | (1ULL << (from - 1));
+                // White kingside
+                rookFrom = 7;
+                rookTo = from + 1;
+            } else {
+                // White queenside
+                rookFrom = 0;
+                rookTo = from - 1;
             }
-        }else {
+
+            currentState.whitePieces &=
+                ~(1ULL << rookFrom);
+
+            currentState.whitePieces |=
+                (1ULL << rookTo);
+
+        } else {
+
             if (from < to) {
-                //king side castling for black pieces
-                currentState.board[from + 1] = setHasMoved(currentState.board[63]);
-                currentState.board[63] = EMPTY;
-
-                //update the rooks position the blacks piece bitbord
-                currentState.blackPieces = currentState.blackPieces ^ (1ULL << 63);
-                currentState.blackPieces = currentState.blackPieces | (1ULL << (from + 1));
-            }else {
-                currentState.board[from - 1] = setHasMoved(currentState.board[56]);
-                currentState.board[56] = EMPTY;
-
-                //update the rooks position the blacks piece bitbord
-                currentState.blackPieces = currentState.blackPieces ^ (1ULL << 56);
-                currentState.blackPieces = currentState.blackPieces | (1ULL << (from - 1));
+                // Black kingside
+                rookFrom = 63;
+                rookTo = from + 1;
+            } else {
+                // Black queenside
+                rookFrom = 56;
+                rookTo = from - 1;
             }
+
+            currentState.blackPieces &=
+                ~(1ULL << rookFrom);
+
+            currentState.blackPieces |=
+                (1ULL << rookTo);
         }
+
+        // Move rook on the actual board
+        currentState.board[rookTo] =
+            setHasMoved(currentState.board[rookFrom]);
+
+        currentState.board[rookFrom] = EMPTY;
     }
 
-    if (decodePiece(currentState.board[from]) == PAWN) {
-        currentState.unpasentSquare = getUnpasantSquare(from, to, decodeColorPiece(currentState.board[from]));
-    }else {
+    // --------------------------------------------------
+    // 4. UPDATE EN PASSANT SQUARE
+    // --------------------------------------------------
+
+    if (decodePiece(movingPiece) == PAWN) {
+
+        currentState.unpasentSquare =
+            getUnpasantSquare(
+                from,
+                to,
+                decodeColorPiece(movingPiece)
+            );
+
+    } else {
+
         currentState.unpasentSquare = 0;
     }
 
-    //move piece pieces
-    currentState.board[to] = setHasMoved(currentState.board[from]);
+    // --------------------------------------------------
+    // 5. MOVE THE ACTUAL PIECE
+    // --------------------------------------------------
+
+    currentState.board[to] = setHasMoved(movingPiece);
     currentState.board[from] = EMPTY;
-    if (currentState.colorsTurn == 1) {
 
-        if (decodePiece(currentState.board[to]) == KING)
-            currentState.blackKingsCurrentSquare = to;
+    // --------------------------------------------------
+    // 6. UPDATE MOVING PLAYER'S BITBOARD
+    // --------------------------------------------------
 
-        //update kingIsCheck flag
-        currentState.kingInCheck = isKingInCheck(currentState.whiteKingsCurrentSquare, currentState.board);
+    if (isWhite) {
 
-        currentState.colorsTurn = 0;
+        currentState.whitePieces &= ~(1ULL << from);
+        currentState.whitePieces |= (1ULL << to);
 
-        //update black pieces bitboard
-        currentState.blackPieces = currentState.blackPieces ^ (1ULL << from);
-        currentState.blackPieces = currentState.blackPieces | (1ULL << to);
-    }
-    else {
-        if (decodePiece(currentState.board[to]) == KING)
+        // Update white king position
+        if (decodePiece(movingPiece) == KING) {
             currentState.whiteKingsCurrentSquare = to;
+        }
 
-        //update kingIsCheck flag
-        currentState.kingInCheck = isKingInCheck(currentState.blackKingsCurrentSquare, currentState.board);
-
+        // Black's turn
         currentState.colorsTurn = 1;
 
-        //update black pieces bitboard
-        currentState.whitePieces = currentState.whitePieces ^ (1ULL << from);
-        currentState.whitePieces = currentState.whitePieces | (1ULL << to);
+        // Check whether black's move left white in check
+        currentState.kingInCheck =
+            isKingInCheck(
+                currentState.blackKingsCurrentSquare,
+                currentState.board
+            );
+
+    } else {
+
+        currentState.blackPieces &= ~(1ULL << from);
+        currentState.blackPieces |= (1ULL << to);
+
+        // Update black king position
+        if (decodePiece(movingPiece) == KING) {
+            currentState.blackKingsCurrentSquare = to;
+        }
+
+        // White's turn
+        currentState.colorsTurn = 0;
+
+        // Check whether white's move left black in check
+        currentState.kingInCheck =
+            isKingInCheck(
+                currentState.whiteKingsCurrentSquare,
+                currentState.board
+            );
     }
-
-
 
     return currentState;
 }
+
 
 bool isValidMove(const int from, const int to,GameState currentState) {
 
@@ -1148,14 +1257,15 @@ void gameLoop(const GameState startState) {
         //check chekmate
         if (state.kingInCheck) {
 
-            uint64_t currentPiece = state.colorsTurn == 0 ? state.whitePieces : state.blackPieces;
-            if (checkCheckMate(currentPiece, state)) {
+            uint64_t currentPiece = state.colorsTurn == 0 ? state.whitePieces: state.blackPieces;
+            uint8_t kingsPosition = state.colorsTurn == 0 ? state.whiteKingsCurrentSquare : state.blackKingsCurrentSquare;
+            if (checkCheckMate(currentPiece,kingsPosition, state)) {
                 cout<< "check mate!! "<<(state.colorsTurn == 0 ? "black won \n": "white won \n");
                 break;
             }
 
-            if (checkStaleMate(currentPiece, state)) {
-                cout<< "stale mate!! "<<(state.colorsTurn == 0 ? "black won \n": "white won \n");
+            if (checkStaleMate(currentPiece,kingsPosition, state)) {
+                cout<< "stale mate!! ";
                 break;
             }
         }
